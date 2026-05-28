@@ -1,6 +1,5 @@
 package com.example.nailzbynutz;
 
-import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,14 +7,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
-import java.util.ArrayList;
+import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.List;
 
 public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ViewHolder> {
 
     private List<ServiceModel> serviceList;
-    private android.content.Context context;
 
     public ServiceAdapter(List<ServiceModel> serviceList) {
         this.serviceList = serviceList;
@@ -24,47 +22,42 @@ public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ViewHold
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        context = parent.getContext();
-        View view = LayoutInflater.from(context).inflate(R.layout.item_service, parent, false);
+        // Menghubungkan layout satu baris item jasa (item_service.xml) ke dalam daftar
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_service, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ServiceModel service = serviceList.get(position);
-        holder.tvName.setText(service.getName());
-        holder.tvDesc.setText(service.getDescription());
-        holder.tvPrice.setText("Mulai dari Rp " + service.getPrice());
-        holder.ivImage.setImageResource(service.getImageResId());
 
-        holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, BookingAppointmentActivity.class);
-            intent.putExtra("FINAL_SHAPE", service.getName());
-            intent.putExtra("FINAL_LENGTH", "Standard");
-            intent.putExtra("FINAL_COLOR_TYPE", "Service");
-            intent.putExtra("FINAL_COLOR", "#7E8DBB");
-            intent.putExtra("FINAL_FINISH", "Standard");
-            intent.putExtra("FINAL_SIZE", "Standard");
-            intent.putExtra("FINAL_NOTES", "Layanan: " + service.getName() + " - Rp " + service.getPrice());
-            intent.putStringArrayListExtra("FINAL_ADDONS", new ArrayList<>());
-            context.startActivity(intent);
-        });
+        holder.tvTitle.setText(service.getTitle());
+        holder.tvDescription.setText(service.getDescription());
+        holder.ivIcon.setImageResource(service.getIconResId());
+
+        // Mengubah angka nominal biasa menjadi format mata uang Rupiah secara otomatis (Contoh: Rp45.000)
+        NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
+        formatter.setMaximumFractionDigits(0); // Menghilangkan nilai desimal ,00 di belakang harga
+        String formattedPrice = formatter.format(service.getPrice());
+        holder.tvPrice.setText(formattedPrice);
     }
 
     @Override
     public int getItemCount() {
-        return serviceList.size();
+        return serviceList.size(); // Total list layanan salon yang dimuat
     }
 
+    // Menghubungkan id komponen XML item_service ke variabel Java
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView ivImage;
-        TextView tvName, tvDesc, tvPrice;
+        ImageView ivIcon;
+        TextView tvTitle, tvDescription, tvPrice;
+
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            ivImage = itemView.findViewById(R.id.iv_service_image);
-            tvName = itemView.findViewById(R.id.tv_service_name);
-            tvDesc = itemView.findViewById(R.id.tv_service_desc);
-            tvPrice = itemView.findViewById(R.id.tv_service_price);
+            ivIcon = itemView.findViewById(R.id.service_icon);
+            tvTitle = itemView.findViewById(R.id.service_title);
+            tvDescription = itemView.findViewById(R.id.service_description);
+            tvPrice = itemView.findViewById(R.id.service_price);
         }
     }
 }

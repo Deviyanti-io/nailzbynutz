@@ -1,26 +1,34 @@
 package com.example.nailzbynutz;
 
 import android.content.Context;
-import android.content.SharedPreferences;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 public class WishlistAdapter extends RecyclerView.Adapter<WishlistAdapter.ViewHolder> {
 
-    private List<NailModel> wishlistItems;
     private Context context;
-    private SharedPreferences wishlistPrefs;
+    private List<NailModel> wishlistItems;
+    private OnItemRemovedListener onItemRemovedListener;
+
+    public interface OnItemRemovedListener {
+        void onItemRemoved(int newSize);
+    }
+
+    public void setOnItemRemovedListener(OnItemRemovedListener listener) {
+        this.onItemRemovedListener = listener;
+    }
 
     public WishlistAdapter(Context context, List<NailModel> wishlistItems) {
         this.context = context;
         this.wishlistItems = wishlistItems;
-        this.wishlistPrefs = context.getSharedPreferences("WishlistPrefs", Context.MODE_PRIVATE);
     }
 
     @NonNull
@@ -36,32 +44,28 @@ public class WishlistAdapter extends RecyclerView.Adapter<WishlistAdapter.ViewHo
         holder.tvName.setText(nail.getName());
         holder.tvPrice.setText(nail.getPrice());
         holder.ivImage.setImageResource(nail.getImageResId());
-        // Tampilkan heart on (karena ini wishlist)
         holder.ivHeart.setImageResource(R.drawable.ic_heart_on);
 
-        // Klik heart untuk menghapus dari wishlist
+        // Tombol hapus dari wishlist
         holder.ivHeart.setOnClickListener(v -> {
-            // Cari indeks asli produk ini (perlu disimpan, tapi untuk sederhana kita hapus dari list dan update prefs)
-            // Idealnya simpan ID produk, tapi karena kita pakai indeks, kita harus cari ulang di semua produk
-            // Untuk kemudahan, kita hapus item dari list dan update prefs untuk indeks tersebut (perlu mapping)
-            // Di sini kita gunakan pendekatan sederhana: hapus dari list dan update status favorite di SharedPreferences
-            // Karena kita tidak punya ID, kita akan gunakan nama sebagai key (tidak ideal, tapi bisa untuk demo)
-            updateFavoriteStatus(nail.getName(), false);
+            nail.setFavorite(false);
             wishlistItems.remove(position);
+            NailModel.globalWishlist.remove(nail);
             notifyItemRemoved(position);
-            if (wishlistItems.isEmpty()) {
-                // notify activity untuk tampilkan empty state (bisa via interface, tapi untuk sederhana kita reload activity)
-                ((WishlistActivity) context).finish();
-                context.startActivity(((WishlistActivity) context).getIntent());
+            notifyItemRangeChanged(position, wishlistItems.size());
+            Toast.makeText(context, nail.getName() + " dihapus dari Wishlist", Toast.LENGTH_SHORT).show();
+            if (onItemRemovedListener != null) {
+                onItemRemovedListener.onItemRemoved(wishlistItems.size());
             }
         });
-    }
 
-    private void updateFavoriteStatus(String productName, boolean isFav) {
-        // Karena tidak ada ID, kita update semua produk yang namanya cocok (tidak ideal, tapi untuk demo)
-        // Di aplikasi nyata, sebaiknya gunakan ID produk.
-        // Untuk sementara, kita tidak perlu implementasi karena wishlist sudah di-handle via indeks di Explore.
-        // Biarkan kosong, karena kita hanya hapus dari list lokal.
+        // Klik item -> pindah ke CustomNailShapeActivity
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, CustomNailShapeActivity.class);
+            intent.putExtra("PRODUCT_NAME", nail.getName());
+            // Tidak ada flag aneh, start activity biasa
+            context.startActivity(intent);
+        });
     }
 
     @Override

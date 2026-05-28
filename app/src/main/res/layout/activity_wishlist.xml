@@ -6,8 +6,9 @@
     android:background="@color/background_primary"
     android:padding="20dp">
 
-    <!-- Header -->
+    <!-- Header dengan judul wishlist yang jelas -->
     <RelativeLayout
+        android:id="@+id/header_wishlist"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="20dp">
@@ -18,7 +19,8 @@
             android:layout_height="32dp"
             android:src="@drawable/ic_back"
             app:tint="@color/text_primary"
-            android:clickable="true" />
+            android:clickable="true"
+            android:layout_centerVertical="true" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -32,15 +34,15 @@
 
     </RelativeLayout>
 
-    <!-- RecyclerView -->
+    <!-- RecyclerView untuk daftar wishlist -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_wishlist"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/btn_back_wishlist"
+        android:layout_below="@id/header_wishlist"
         android:visibility="gone" />
 
-    <!-- Empty State -->
+    <!-- Empty state: tampil saat wishlist kosong -->
     <LinearLayout
         android:id="@+id/layout_empty_state"
         android:layout_width="wrap_content"

@@ -1,48 +1,25 @@
 package com.example.nailzbynutz;
 
 import android.content.Context;
-import android.content.SharedPreferences;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 public class ExploreAdapter extends RecyclerView.Adapter<ExploreAdapter.ViewHolder> {
 
-    private List<NailModel> nailList;
     private Context context;
-    private SharedPreferences wishlistPrefs;
+    private List<NailModel> nailList;
 
     public ExploreAdapter(Context context, List<NailModel> nailList) {
         this.context = context;
         this.nailList = nailList;
-        this.wishlistPrefs = context.getSharedPreferences("WishlistPrefs", Context.MODE_PRIVATE);
-        loadFavoriteStatusFromPrefs();
-        syncGlobalWishlist();
-    }
-
-    private void loadFavoriteStatusFromPrefs() {
-        for (int i = 0; i < nailList.size(); i++) {
-            boolean isFav = wishlistPrefs.getBoolean("fav_" + i, false);
-            nailList.get(i).setFavorite(isFav);
-        }
-    }
-
-    private void saveFavoriteStatus(int position, boolean isFav) {
-        wishlistPrefs.edit().putBoolean("fav_" + position, isFav).apply();
-    }
-
-    private void syncGlobalWishlist() {
-        NailModel.globalWishlist.clear();
-        for (NailModel nail : nailList) {
-            if (nail.isFavorite()) {
-                NailModel.globalWishlist.add(nail);
-            }
-        }
     }
 
     @NonNull
@@ -59,24 +36,42 @@ public class ExploreAdapter extends RecyclerView.Adapter<ExploreAdapter.ViewHold
         holder.tvPrice.setText(nail.getPrice());
         holder.ivImage.setImageResource(nail.getImageResId());
 
+        // Update icon jantung
         if (nail.isFavorite()) {
             holder.ivHeart.setImageResource(R.drawable.ic_heart_on);
         } else {
             holder.ivHeart.setImageResource(R.drawable.ic_heart_off);
         }
 
+        // Klik item (gambar) -> ke CustomNailShapeActivity
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, CustomNailShapeActivity.class);
+            intent.putExtra("PRODUCT_NAME", nail.getName());
+            context.startActivity(intent);
+        });
+
+        // Klik jantung -> toggle wishlist (tidak pindah halaman)
         holder.ivHeart.setOnClickListener(v -> {
-            boolean newStatus = !nail.isFavorite();
-            nail.setFavorite(newStatus);
-            saveFavoriteStatus(position, newStatus);
-            if (newStatus) {
-                if (!NailModel.globalWishlist.contains(nail)) {
-                    NailModel.globalWishlist.add(nail);
+            try {
+                boolean currentStatus = nail.isFavorite();
+                nail.setFavorite(!currentStatus);
+
+                if (!currentStatus) {
+                    // Tambah ke wishlist jika belum ada
+                    if (!NailModel.globalWishlist.contains(nail)) {
+                        NailModel.globalWishlist.add(nail);
+                    }
+                    Toast.makeText(context, nail.getName() + " ditambahkan ke Wishlist ❤️", Toast.LENGTH_SHORT).show();
+                } else {
+                    // Hapus dari wishlist
+                    NailModel.globalWishlist.remove(nail);
+                    Toast.makeText(context, nail.getName() + " dihapus dari Wishlist", Toast.LENGTH_SHORT).show();
                 }
-            } else {
-                NailModel.globalWishlist.remove(nail);
+                notifyItemChanged(position);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(context, "Terjadi kesalahan", Toast.LENGTH_SHORT).show();
             }
-            notifyItemChanged(position);
         });
     }
 
@@ -88,6 +83,7 @@ public class ExploreAdapter extends RecyclerView.Adapter<ExploreAdapter.ViewHold
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView ivImage, ivHeart;
         TextView tvName, tvPrice;
+
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             ivImage = itemView.findViewById(R.id.iv_nail_image);

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="nail_image" type="id" />
+    <item name="nail_name" type="id" />
+    <item name="nail_price" type="id" />
+    <item name="service_icon" type="id" />
+    <item name="service_title" type="id" />
+    <item name="service_description" type="id" />
+    <item name="service_price" type="id" />
+    <item name="wishlist_nail_image" type="id" />
+    <item name="wishlist_iv_heart" type="id" />
+    <item name="wishlist_nail_price" type="id" />
+    <item name="wishlist_nail_name" type="id" />
+    <item name="btn_next" type="id" />
+    <item name="booking_container" type="id" />
+    <item name="tv_empty_message" type="id" />
+    <item name="tv_empty_wishlist" type="id" />
+    <item name="btn_logout" type="id" />
+    <item name="tv_upload_status" type="id" />
+</resources>

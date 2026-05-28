@@ -2,18 +2,16 @@ package com.example.nailzbynutz;
 
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class WishlistActivity extends AppCompatActivity {
 
     private RecyclerView rvWishlist;
-    private LinearLayout layoutEmpty;
-    private ImageView btnBack;
-    private ExploreAdapter adapter;
+    private WishlistAdapter adapter;
+    private LinearLayout emptyLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,34 +19,41 @@ public class WishlistActivity extends AppCompatActivity {
         setContentView(R.layout.activity_wishlist);
 
         rvWishlist = findViewById(R.id.rv_wishlist);
-        layoutEmpty = findViewById(R.id.layout_empty_state);
-        btnBack = findViewById(R.id.btn_back_wishlist);
+        emptyLayout = findViewById(R.id.layout_empty_state);
 
-        btnBack.setOnClickListener(v -> finish());
+        rvWishlist.setLayoutManager(new LinearLayoutManager(this));
 
-        rvWishlist.setLayoutManager(new GridLayoutManager(this, 2));
-        adapter = new ExploreAdapter(this, NailModel.globalWishlist);
-        rvWishlist.setAdapter(adapter);
+        setupWishlist();
 
-        updateEmptyState();
+        findViewById(R.id.btn_back_wishlist).setOnClickListener(v -> finish());
+    }
+
+    private void setupWishlist() {
+        if (NailModel.globalWishlist == null || NailModel.globalWishlist.isEmpty()) {
+            emptyLayout.setVisibility(View.VISIBLE);
+            rvWishlist.setVisibility(View.GONE);
+        } else {
+            emptyLayout.setVisibility(View.GONE);
+            rvWishlist.setVisibility(View.VISIBLE);
+            adapter = new WishlistAdapter(this, NailModel.globalWishlist);
+            adapter.setOnItemRemovedListener(newSize -> {
+                if (newSize == 0) {
+                    emptyLayout.setVisibility(View.VISIBLE);
+                    rvWishlist.setVisibility(View.GONE);
+                }
+            });
+            rvWishlist.setAdapter(adapter);
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        // Refresh adapter jika ada perubahan data dari luar (misal setelah order)
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
-        updateEmptyState();
-    }
-
-    private void updateEmptyState() {
-        if (NailModel.globalWishlist.isEmpty()) {
-            layoutEmpty.setVisibility(View.VISIBLE);
-            rvWishlist.setVisibility(View.GONE);
-        } else {
-            layoutEmpty.setVisibility(View.GONE);
-            rvWishlist.setVisibility(View.VISIBLE);
-        }
+        // Update empty state jika wishlist berubah
+        setupWishlist();
     }
 }

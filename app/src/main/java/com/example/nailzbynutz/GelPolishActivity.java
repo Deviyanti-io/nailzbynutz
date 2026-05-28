@@ -1,28 +1,30 @@
 package com.example.nailzbynutz;
 
 import android.content.Intent;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
-import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class GelPolishActivity extends AppCompatActivity {
 
     private LinearLayout typeRegular, typeGel, typeMatte, typeChrome, typeCateye, typeGlitter, typeJelly, typeMagnetic;
     private LinearLayout finishMatte, finishGlossy;
-    private BottomNavigationView bottomNav;
-    private String selectedType = "";
-    private String selectedFinish = "";
+    private Button btnNextGel;
+    private ImageView btnBackGel;
+
+    private String selectedPolishType = "Gel Polish";
+    private String selectedTopCoat = "Glossy";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gel_polish);
 
-        // Initialize views
+        btnBackGel = findViewById(R.id.btn_back_gel);
         typeRegular = findViewById(R.id.type_regular);
         typeGel = findViewById(R.id.type_gel);
         typeMatte = findViewById(R.id.type_matte);
@@ -33,98 +35,78 @@ public class GelPolishActivity extends AppCompatActivity {
         typeMagnetic = findViewById(R.id.type_magnetic);
         finishMatte = findViewById(R.id.finish_matte);
         finishGlossy = findViewById(R.id.finish_glossy);
-        bottomNav = findViewById(R.id.bottom_navigation);
+        btnNextGel = findViewById(R.id.btn_next_gel);
 
-        // Back button
-        findViewById(R.id.btn_back_gel).setOnClickListener(v -> finish());
+        btnBackGel.setOnClickListener(v -> finish());
 
-        // Polish type click listeners
-        setupTypeClickListener(typeRegular, "Regular");
-        setupTypeClickListener(typeGel, "Gel Polish");
-        setupTypeClickListener(typeMatte, "Matte");
-        setupTypeClickListener(typeChrome, "Chrome");
-        setupTypeClickListener(typeCateye, "Cat Eye");
-        setupTypeClickListener(typeGlitter, "Glitter");
-        setupTypeClickListener(typeJelly, "Jelly");
-        setupTypeClickListener(typeMagnetic, "Magnetic");
+        setPolishTypeListener(typeRegular, "Regular");
+        setPolishTypeListener(typeGel, "Gel Polish");
+        setPolishTypeListener(typeMatte, "Matte");
+        setPolishTypeListener(typeChrome, "Chrome");
+        setPolishTypeListener(typeCateye, "Cat Eye");
+        setPolishTypeListener(typeGlitter, "Glitter");
+        setPolishTypeListener(typeJelly, "Jelly");
+        setPolishTypeListener(typeMagnetic, "Magnetic");
 
-        // Finish click listeners
-        setupFinishClickListener(finishMatte, "Matte Top Coat");
-        setupFinishClickListener(finishGlossy, "Glossy Top Coat");
+        finishMatte.setOnClickListener(v -> {
+            selectedTopCoat = "Matte";
+            updateTopCoatUI(finishMatte, finishGlossy);
+        });
+        finishGlossy.setOnClickListener(v -> {
+            selectedTopCoat = "Glossy";
+            updateTopCoatUI(finishGlossy, finishMatte);
+        });
 
-        // Next button
-        findViewById(R.id.btn_next_gel).setOnClickListener(v -> {
-            if (selectedType.isEmpty()) {
-                Toast.makeText(this, "Pilih jenis polish terlebih dahulu", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            if (selectedFinish.isEmpty()) {
-                Toast.makeText(this, "Pilih top coat finish terlebih dahulu", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            Intent intent = new Intent(this, BookingAppointmentActivity.class);
-            intent.putExtra("service_type", "Gel Polish");
-            intent.putExtra("polish_type", selectedType);
-            intent.putExtra("top_coat", selectedFinish);
+        setActivePolishType(typeGel);
+        updateTopCoatUI(finishGlossy, finishMatte);
+
+        btnNextGel.setOnClickListener(v -> {
+            Intent intent = new Intent(GelPolishActivity.this, CustomNailColorActivity.class);
+            intent.putExtra("SHAPE_DATA", "Almond");
+            intent.putExtra("LENGTH_DATA", "Medium");
+            intent.putExtra("COLOR_TYPE_DATA", selectedPolishType);
+            intent.putExtra("FINISH_DATA", selectedTopCoat);
+            intent.putExtra("FROM_GEL_POLISH", true);
             startActivity(intent);
         });
-
-        // Bottom navigation
-        bottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_home) {
-                startActivity(new Intent(this, MainNavigationActivity.class));
-                finish();
-            } else if (id == R.id.nav_explore) {
-                startActivity(new Intent(this, ExploreActivity.class));
-                finish();
-            } else if (id == R.id.nav_history) {
-                startActivity(new Intent(this, HistoryActivity.class));
-                finish();
-            } else if (id == R.id.nav_profile) {
-                startActivity(new Intent(this, ProfileActivity.class));
-                finish();
-            }
-            return true;
-        });
-        bottomNav.setSelectedItemId(R.id.nav_explore);
     }
 
-    private void setupTypeClickListener(LinearLayout layout, String type) {
+    private void setPolishTypeListener(LinearLayout layout, String type) {
         layout.setOnClickListener(v -> {
-            resetTypeSelection();
-            selectedType = type;
-            layout.setBackgroundTintList(getColorStateList(R.color.lavender_dark));
-            TextView text = (TextView) layout.getChildAt(1);
-            if (text != null) text.setTextColor(getColor(R.color.white));
+            selectedPolishType = type;
+            resetPolishTypeBackground();
+            setActivePolishType(layout);
+            Toast.makeText(this, "Pilih: " + type, Toast.LENGTH_SHORT).show();
         });
     }
 
-    private void resetTypeSelection() {
+    private void resetPolishTypeBackground() {
         LinearLayout[] types = {typeRegular, typeGel, typeMatte, typeChrome, typeCateye, typeGlitter, typeJelly, typeMagnetic};
-        for (LinearLayout type : types) {
-            type.setBackgroundTintList(getColorStateList(R.color.background_card));
-            TextView text = (TextView) type.getChildAt(1);
-            if (text != null) text.setTextColor(getColor(R.color.text_primary));
+        for (LinearLayout t : types) {
+            t.setBackgroundResource(R.drawable.bg_card_rounded);
         }
     }
 
-    private void setupFinishClickListener(LinearLayout layout, String finish) {
-        layout.setOnClickListener(v -> {
-            resetFinishSelection();
-            selectedFinish = finish;
-            layout.setBackgroundTintList(getColorStateList(R.color.lavender_dark));
-            TextView text = (TextView) layout.getChildAt(1);
-            if (text != null) text.setTextColor(getColor(R.color.white));
-        });
+    private void setActivePolishType(LinearLayout activeLayout) {
+        GradientDrawable gd = new GradientDrawable();
+        gd.setShape(GradientDrawable.RECTANGLE);
+        gd.setCornerRadius(20f);
+        gd.setColor(getColor(R.color.lavender_dark));
+        activeLayout.setBackground(gd);
     }
 
-    private void resetFinishSelection() {
-        LinearLayout[] finishes = {finishMatte, finishGlossy};
-        for (LinearLayout finish : finishes) {
-            finish.setBackgroundTintList(getColorStateList(R.color.background_card));
-            TextView text = (TextView) finish.getChildAt(1);
-            if (text != null) text.setTextColor(getColor(R.color.text_primary));
-        }
+    private void updateTopCoatUI(LinearLayout active, LinearLayout inactive) {
+        GradientDrawable gdActive = new GradientDrawable();
+        gdActive.setShape(GradientDrawable.RECTANGLE);
+        gdActive.setCornerRadius(20f);
+        gdActive.setColor(getColor(R.color.lavender_dark));
+        active.setBackground(gdActive);
+
+        GradientDrawable gdInactive = new GradientDrawable();
+        gdInactive.setShape(GradientDrawable.RECTANGLE);
+        gdInactive.setCornerRadius(20f);
+        gdInactive.setColor(getColor(R.color.background_card));
+        gdInactive.setStroke(2, getColor(R.color.divider));
+        inactive.setBackground(gdInactive);
     }
 }

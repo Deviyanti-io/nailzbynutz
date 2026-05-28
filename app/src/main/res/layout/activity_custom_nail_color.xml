@@ -158,7 +158,16 @@
                 <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_filter" app:tint="@color/lavender_dark"/>
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Upload foto referensi kamu di sini +" android:textColor="@color/lavender_dark" android:textSize="13sp" android:layout_marginLeft="10dp" android:fontFamily="@font/poppins_medium"/>
             </LinearLayout>
-
+            <TextView
+                android:id="@+id/tv_upload_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="@color/lavender_dark"
+                android:textSize="12sp"
+                android:fontFamily="@font/poppins_medium"
+                android:layout_marginTop="8dp"
+                android:visibility="gone" />
         </LinearLayout>
     </ScrollView>
 

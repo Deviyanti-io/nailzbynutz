@@ -1,339 +1,297 @@
 package com.example.nailzbynutz;
 
-import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.Gravity;
-import android.view.View;
+import android.provider.MediaStore;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import android.Manifest;
 import java.util.ArrayList;
-import java.util.List;
 
 public class CustomNailColorActivity extends AppCompatActivity {
 
-    // View components
-    private ImageView btnBack;
-    private Button btnNext;
-    private Button btnTypeSolid, btnTypeGradient, btnTypeFrench, btnTypeCatEye;
-    private LinearLayout btnGlossy, btnMatte, btnChrome, btnGlitter;
-    private LinearLayout btnUploadPhoto;
-    private GridLayout colorGrid;
+    private static final int PICK_IMAGE_REQUEST = 100;
+    private static final int PERMISSION_REQUEST = 101;
 
-    // Data selections
+    private String selectedShape, selectedLength;
+    private String selectedColorHex = null;
     private String selectedColorType = "Solid";
-    private String selectedColorHex = "#D6001C";
     private String selectedFinish = "Glossy";
     private ArrayList<String> selectedAddons = new ArrayList<>();
-    private String dataShape = "Almond", dataLength = "Medium";
-    private String uploadedImageUri = "";
+    private String uploadedImagePath = null;
 
-    private ActivityResultLauncher<Intent> galleryLauncher;
-
-    // Color lists
-    private List<ColorItem> solidColors = new ArrayList<>();
-    private List<ColorItem> ombreColors = new ArrayList<>();
-    private List<ColorItem> frenchColors = new ArrayList<>();
-    private List<ColorItem> catEyeColors = new ArrayList<>();
+    private GridLayout colorGrid;
+    private Button btnTypeSolid, btnTypeOmbre, btnTypeFrench, btnTypeCatEye;
+    private LinearLayout btnFinishGlossy, btnFinishMatte, btnFinishChrome, btnFinishGlitter;
+    private LinearLayout addonCharms, addonPearls, addonRhinestone, addonFlower, addonStickers, addonBow;
+    private LinearLayout btnUploadPhoto;
+    private TextView tvUploadStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom_nail_color);
 
-        if (getIntent().hasExtra("SHAPE_DATA")) dataShape = getIntent().getStringExtra("SHAPE_DATA");
-        if (getIntent().hasExtra("LENGTH_DATA")) dataLength = getIntent().getStringExtra("LENGTH_DATA");
+        // Ambil data dari intent (bisa dari CustomNailShapeActivity atau GelPolishActivity)
+        selectedShape = getIntent().getStringExtra("SHAPE_DATA");
+        selectedLength = getIntent().getStringExtra("LENGTH_DATA");
+        if (selectedShape == null) selectedShape = "Almond";
+        if (selectedLength == null) selectedLength = "Medium";
 
-        // Initialize views
-        btnBack = findViewById(R.id.btn_back_color);
-        btnNext = findViewById(R.id.btn_next_color);
+        // Jika datang dari GelPolishActivity, ambil color type dan finish
+        boolean fromGelPolish = getIntent().getBooleanExtra("FROM_GEL_POLISH", false);
+        if (fromGelPolish) {
+            String polishType = getIntent().getStringExtra("COLOR_TYPE_DATA");
+            String topCoat = getIntent().getStringExtra("FINISH_DATA");
+            if (polishType != null) selectedColorType = polishType;
+            if (topCoat != null) selectedFinish = topCoat;
+        }
+
+        // Inisialisasi view
+        ImageView btnBackColor = findViewById(R.id.btn_back_color);
+        btnBackColor.setOnClickListener(v -> finish());
+
+        colorGrid = findViewById(R.id.color_grid);
+        colorGrid.setColumnCount(7); // 7 kolom agar rapi
+
         btnTypeSolid = findViewById(R.id.btn_type_solid);
-        btnTypeGradient = findViewById(R.id.btn_type_gradient);
+        btnTypeOmbre = findViewById(R.id.btn_type_gradient);
         btnTypeFrench = findViewById(R.id.btn_type_french);
         btnTypeCatEye = findViewById(R.id.btn_type_cateye);
-        btnGlossy = findViewById(R.id.btn_finish_glossy);
-        btnMatte = findViewById(R.id.btn_finish_matte);
-        btnChrome = findViewById(R.id.btn_finish_chrome);
-        btnGlitter = findViewById(R.id.btn_finish_glitter);
+
+        btnFinishGlossy = findViewById(R.id.btn_finish_glossy);
+        btnFinishMatte = findViewById(R.id.btn_finish_matte);
+        btnFinishChrome = findViewById(R.id.btn_finish_chrome);
+        btnFinishGlitter = findViewById(R.id.btn_finish_glitter);
+
+        addonCharms = findViewById(R.id.addon_charms);
+        addonPearls = findViewById(R.id.addon_pearls);
+        addonRhinestone = findViewById(R.id.addon_rhinestone);
+        addonFlower = findViewById(R.id.addon_flower);
+        addonStickers = findViewById(R.id.addon_stickers);
+        addonBow = findViewById(R.id.addon_bow);
+
         btnUploadPhoto = findViewById(R.id.btn_upload_photo_container);
-        colorGrid = findViewById(R.id.color_grid);
+        tvUploadStatus = findViewById(R.id.tv_upload_status);
+        Button btnNextColor = findViewById(R.id.btn_next_color);
 
-        // Gallery launcher
-        galleryLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                        Uri uri = result.getData().getData();
-                        if (uri != null) {
-                            uploadedImageUri = uri.toString();
-                            Toast.makeText(this, "Foto referensi berhasil dimuat!", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
+        // ================= 1. DAFTAR WARNA LENGKAP (108 warna) =================
+        String[] colorHexes = {
+                // Baris 1 (001 - 012)
+                "#FF4500", "#D80000", "#C80020", "#8B0020", "#5A0015", "#1A000A", "#FF5E97", "#E463B1", "#FF3399", "#D81B60", "#FF0055", "#C2185B",
+                // Baris 2 (013 - 024)
+                "#20B2AA", "#00A896", "#3A7D8C", "#0288D1", "#004D40", "#0A1931", "#5F9EA0", "#4682B4", "#006666", "#69829C", "#3F51B5", "#1C2833",
+                // Baris 3 (025 - 036)
+                "#C77398", "#A34875", "#B3549C", "#882D61", "#5C0632", "#3D001D", "#FFD1BA", "#E8D7E7", "#F3B0B3", "#D98880", "#E05345", "#A95050",
+                // Baris 4 (037 - 048)
+                "#F2EBE1", "#C5B4AC", "#9CA3A3", "#ABBAD1", "#B19CD9", "#5E4B5B", "#A3E4D7", "#85C1E9", "#5DADE2", "#1F1248", "#152B75", "#09091A",
+                // Baris 5 (049 - 060)
+                "#9EA685", "#A39752", "#6E7F47", "#4A5D23", "#274E37", "#0B291B", "#E6C587", "#7CB342", "#388E3C", "#1B5E20", "#4D6A66", "#14211D",
+                // Baris 6 (061 - 072)
+                "#FFD700", "#E69A28", "#EBB382", "#E59866", "#D4AC0D", "#E05C36", "#F58231", "#E7736F", "#E04836", "#900C3F", "#581845", "#2C0811",
+                // Baris 7 (073 - 084)
+                "#FFC0CB", "#FF8DA1", "#E1BEE7", "#CE93D8", "#BA68C8", "#8E44AD", "#875A4B", "#BA2F00", "#6E1A00", "#3E1919", "#58000C", "#2D0A11",
+                // Baris 8 (085 - 096)
+                "#E02401", "#B30006", "#A30000", "#3F000C", "#800000", "#690005", "#A97F79", "#E52B12", "#3D0C24", "#4A0011", "#7D7474", "#342C3A",
+                // Baris 9 (097 - 108)
+                "#EAECEE", "#D5C4B1", "#A699A6", "#A06A42", "#A03104", "#4E5124", "#050B14", "#F7F9FA", "#4F8684", "#DC5815", "#C00000", "#4A1505"
+        };
 
-        // Populate color data (full)
-        populateColors();
+        // Isi Grid dengan CardView warna
+        for (String hex : colorHexes) {
+            androidx.cardview.widget.CardView colorCard = new androidx.cardview.widget.CardView(this);
+            GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+            params.width = 0;
+            params.height = (int) (42 * getResources().getDisplayMetrics().density);
+            params.rowSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
+            params.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
+            int margin = (int) (4 * getResources().getDisplayMetrics().density);
+            params.setMargins(margin, margin, margin, margin);
+            colorCard.setLayoutParams(params);
+            colorCard.setRadius((int) (21 * getResources().getDisplayMetrics().density));
+            colorCard.setCardBackgroundColor(Color.parseColor(hex));
+            colorCard.setClickable(true);
+            colorCard.setOnClickListener(v -> {
+                selectedColorHex = hex;
+                Toast.makeText(this, "Warna dipilih", Toast.LENGTH_SHORT).show();
+                // Reset elevasi semua card
+                for (int i = 0; i < colorGrid.getChildCount(); i++) {
+                    ((androidx.cardview.widget.CardView) colorGrid.getChildAt(i)).setCardElevation(2);
+                }
+                colorCard.setCardElevation(12);
+            });
+            colorGrid.addView(colorCard);
+        }
 
-        // Set default states
-        updateColorTypeState("Solid");
-        updateFinishState("Glossy");
+        // ================= 2. COLOR TYPE =================
+        setColorTypeListener(btnTypeSolid, "Solid");
+        setColorTypeListener(btnTypeOmbre, "Ombre");
+        setColorTypeListener(btnTypeFrench, "French Tip");
+        setColorTypeListener(btnTypeCatEye, "Cat Eye");
+        updateColorTypeUI(selectedColorType); // update dari data intent jika ada
 
-        // Tab listeners
-        btnTypeSolid.setOnClickListener(v -> updateColorTypeState("Solid"));
-        btnTypeGradient.setOnClickListener(v -> updateColorTypeState("Ombre"));
-        btnTypeFrench.setOnClickListener(v -> updateColorTypeState("French Tip"));
-        btnTypeCatEye.setOnClickListener(v -> updateColorTypeState("Cat Eye"));
+        // ================= 3. FINISH =================
+        setFinishListener(btnFinishGlossy, "Glossy");
+        setFinishListener(btnFinishMatte, "Matte");
+        setFinishListener(btnFinishChrome, "Chrome");
+        setFinishListener(btnFinishGlitter, "Glitter");
+        updateFinishUI(selectedFinish);
 
-        // Finish listeners (without messing with image color filter)
-        btnGlossy.setOnClickListener(v -> updateFinishState("Glossy"));
-        btnMatte.setOnClickListener(v -> updateFinishState("Matte"));
-        btnChrome.setOnClickListener(v -> updateFinishState("Chrome"));
-        btnGlitter.setOnClickListener(v -> updateFinishState("Glitter"));
+        // ================= 4. ADD-ONS =================
+        setAddonListener(addonCharms, "Charms");
+        setAddonListener(addonPearls, "Pearls");
+        setAddonListener(addonRhinestone, "Rhinestone");
+        setAddonListener(addonFlower, "3D Flower");
+        setAddonListener(addonStickers, "Stickers");
+        setAddonListener(addonBow, "Bow");
 
-        // Add-ons
-        setupAddonToggle(R.id.addon_charms, "Charms");
-        setupAddonToggle(R.id.addon_pearls, "Pearls");
-        setupAddonToggle(R.id.addon_rhinestone, "Rhinestone");
-        setupAddonToggle(R.id.addon_flower, "3D Flower");
-        setupAddonToggle(R.id.addon_stickers, "Stickers");
-        setupAddonToggle(R.id.addon_bow, "Bow");
+        // ================= 5. UPLOAD FOTO =================
+        btnUploadPhoto.setOnClickListener(v -> checkAndOpenGallery());
 
-        btnUploadPhoto.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            galleryLauncher.launch(intent);
-        });
-
-        btnBack.setOnClickListener(v -> finish());
-
-        btnNext.setOnClickListener(v -> {
+        // ================= 6. NEXT BUTTON =================
+        btnNextColor.setOnClickListener(v -> {
+            if (selectedColorHex == null) {
+                Toast.makeText(this, "Silakan pilih warna kuku terlebih dahulu!", Toast.LENGTH_SHORT).show();
+                return;
+            }
             Intent intent = new Intent(CustomNailColorActivity.this, CustomNailDetailsActivity.class);
-            intent.putExtra("SHAPE_DATA", dataShape);
-            intent.putExtra("LENGTH_DATA", dataLength);
+            intent.putExtra("SHAPE_DATA", selectedShape);
+            intent.putExtra("LENGTH_DATA", selectedLength);
             intent.putExtra("COLOR_TYPE_DATA", selectedColorType);
             intent.putExtra("COLOR_HEX_DATA", selectedColorHex);
             intent.putExtra("FINISH_DATA", selectedFinish);
+            intent.putExtra("UPLOADED_IMAGE_DATA", uploadedImagePath);
             intent.putStringArrayListExtra("ADDONS_DATA", selectedAddons);
-            intent.putExtra("UPLOADED_IMAGE_DATA", uploadedImageUri);
             startActivity(intent);
         });
     }
 
-    private void populateColors() {
-        // Solid colors (29 colors, full)
-        solidColors.add(new ColorItem("Black", "#000000"));
-        solidColors.add(new ColorItem("Milk White", "#F2F0EB"));
-        solidColors.add(new ColorItem("Cherry Red", "#D6001C"));
-        solidColors.add(new ColorItem("Silver", "#C4C2C0"));
-        solidColors.add(new ColorItem("Caramel", "#D9A05B"));
-        solidColors.add(new ColorItem("Peach Nude", "#F5D6C4"));
-        solidColors.add(new ColorItem("Soft Peach", "#F5D1BC"));
-        solidColors.add(new ColorItem("Rose Pink", "#E8A7B5"));
-        solidColors.add(new ColorItem("Coral", "#F7A399"));
-        solidColors.add(new ColorItem("Dusty Pink", "#E394A4"));
-        solidColors.add(new ColorItem("Mauve", "#BA7EA9"));
-        solidColors.add(new ColorItem("Dark Purple", "#4E2B6B"));
-        solidColors.add(new ColorItem("Wine Red", "#731822"));
-        solidColors.add(new ColorItem("Hot Pink", "#E04D79"));
-        solidColors.add(new ColorItem("Lavender", "#8F63A8"));
-        solidColors.add(new ColorItem("Royal Purple", "#78388C"));
-        solidColors.add(new ColorItem("Pastel Lavender", "#DED2F9"));
-        solidColors.add(new ColorItem("Soft Lilac", "#E8C5E5"));
-        solidColors.add(new ColorItem("Taupe", "#8F8073"));
-        solidColors.add(new ColorItem("Nude Beige", "#D1BCB2"));
-        solidColors.add(new ColorItem("Ocean Blue", "#008EA6"));
-        solidColors.add(new ColorItem("Navy Blue", "#0B4273"));
-        solidColors.add(new ColorItem("Lime Green", "#9ED463"));
-        solidColors.add(new ColorItem("Brown", "#8B5A2B"));
-        solidColors.add(new ColorItem("Teal", "#118199"));
-        solidColors.add(new ColorItem("Deep Teal", "#0F6E85"));
-        solidColors.add(new ColorItem("Dark Cyan", "#08576B"));
-        solidColors.add(new ColorItem("Denim Blue", "#5785A6"));
-        solidColors.add(new ColorItem("Midnight Blue", "#1C364A"));
-
-        // Ombre colors (10 colors)
-        ombreColors.add(new ColorItem("Blush Pink", "#FF9A9E"));
-        ombreColors.add(new ColorItem("Orchid", "#FECFEF"));
-        ombreColors.add(new ColorItem("Sky Blue", "#A1C4FD"));
-        ombreColors.add(new ColorItem("Ice Gradient", "#C2E9FB"));
-        ombreColors.add(new ColorItem("Sunset Gel", "#F6D365"));
-        ombreColors.add(new ColorItem("Melon Candy", "#FDA085"));
-        ombreColors.add(new ColorItem("Lilac Dream", "#E0C3FC"));
-        ombreColors.add(new ColorItem("Soft Ocean", "#8EC5FC"));
-        ombreColors.add(new ColorItem("Mint Fresh", "#84FAB0"));
-        ombreColors.add(new ColorItem("Aqua Bloom", "#8FD3F4"));
-
-        // French Tip colors (8 colors)
-        frenchColors.add(new ColorItem("Classic White", "#FFFFFF"));
-        frenchColors.add(new ColorItem("Rose Petal", "#FFE4E1"));
-        frenchColors.add(new ColorItem("Beige Silk", "#F5F5DC"));
-        frenchColors.add(new ColorItem("Gold Line", "#FFD700"));
-        frenchColors.add(new ColorItem("Deep Onyx", "#000000"));
-        frenchColors.add(new ColorItem("Soft Violet", "#E6E6FA"));
-        frenchColors.add(new ColorItem("Powder Blue", "#B0E0E6"));
-        frenchColors.add(new ColorItem("Blossom", "#FFB6C1"));
-
-        // Cat Eye colors (6 colors)
-        catEyeColors.add(new ColorItem("Galaxy Velvet", "#2E1A47"));
-        catEyeColors.add(new ColorItem("Deep Cosmic", "#1A2E40"));
-        catEyeColors.add(new ColorItem("Jade Magnetic", "#1A402E"));
-        catEyeColors.add(new ColorItem("Amber Flare", "#403A1A"));
-        catEyeColors.add(new ColorItem("Ruby Laser", "#401A1A"));
-        catEyeColors.add(new ColorItem("Nebula Purple", "#331A47"));
+    private void setColorTypeListener(Button btn, String type) {
+        btn.setOnClickListener(v -> {
+            selectedColorType = type;
+            updateColorTypeUI(type);
+        });
     }
 
-    private void updateColorTypeState(String type) {
-        selectedColorType = type;
-        resetTabButton(btnTypeSolid);
-        resetTabButton(btnTypeGradient);
-        resetTabButton(btnTypeFrench);
-        resetTabButton(btnTypeCatEye);
-
-        Button activeTab = btnTypeSolid;
-        if (type.equals("Ombre")) activeTab = btnTypeGradient;
-        else if (type.equals("French Tip")) activeTab = btnTypeFrench;
-        else if (type.equals("Cat Eye")) activeTab = btnTypeCatEye;
-        setActiveTabButton(activeTab);
-
-        List<ColorItem> targetList = solidColors;
-        if (type.equals("Ombre")) targetList = ombreColors;
-        else if (type.equals("French Tip")) targetList = frenchColors;
-        else if (type.equals("Cat Eye")) targetList = catEyeColors;
-        generateColorGrid(targetList);
+    private void updateColorTypeUI(String activeType) {
+        resetButtonStyle(btnTypeSolid);
+        resetButtonStyle(btnTypeOmbre);
+        resetButtonStyle(btnTypeFrench);
+        resetButtonStyle(btnTypeCatEye);
+        if (activeType.equals("Solid")) setActiveButtonStyle(btnTypeSolid);
+        else if (activeType.equals("Ombre")) setActiveButtonStyle(btnTypeOmbre);
+        else if (activeType.equals("French Tip")) setActiveButtonStyle(btnTypeFrench);
+        else if (activeType.equals("Cat Eye")) setActiveButtonStyle(btnTypeCatEye);
     }
 
-    private void resetTabButton(Button btn) {
-        if (btn == null) return;
-        btn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.background_card)));
+    private void resetButtonStyle(Button btn) {
+        btn.setBackgroundTintList(ColorStateList.valueOf(getColor(R.color.background_card)));
         btn.setTextColor(getColor(R.color.text_primary));
+        btn.setWidth(1);
+        btn.setTextColor(getColor(R.color.divider));
     }
 
-    private void setActiveTabButton(Button btn) {
-        if (btn == null) return;
-        btn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.lavender_dark)));
+    private void setActiveButtonStyle(Button btn) {
+        btn.setBackgroundTintList(ColorStateList.valueOf(getColor(R.color.lavender_dark)));
         btn.setTextColor(getColor(R.color.white));
+        btn.setWidth(0);
     }
 
-    private void generateColorGrid(List<ColorItem> colors) {
-        colorGrid.removeAllViews();
-        for (ColorItem color : colors) {
-            LinearLayout item = new LinearLayout(this);
-            item.setOrientation(LinearLayout.VERTICAL);
-            item.setGravity(Gravity.CENTER);
-            GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-            params.setMargins(12, 12, 12, 12);
-            item.setLayoutParams(params);
-
-            View circle = new View(this);
-            LinearLayout.LayoutParams circleParams = new LinearLayout.LayoutParams(80, 80);
-            circle.setLayoutParams(circleParams);
-            GradientDrawable shape = new GradientDrawable();
-            shape.setShape(GradientDrawable.OVAL);
-            shape.setColor(Color.parseColor(color.hex));
-            if (color.hex.equalsIgnoreCase("#FFFFFF") || color.hex.equalsIgnoreCase("#F2F0EB")) {
-                shape.setStroke(2, Color.parseColor("#DDDDDD"));
-            }
-            circle.setBackground(shape);
-
-            TextView name = new TextView(this);
-            name.setText(color.name);
-            name.setTextSize(10);
-            name.setTextColor(getColor(R.color.text_primary));
-            name.setGravity(Gravity.CENTER);
-            name.setPadding(0, 8, 0, 0);
-            name.setTypeface(getResources().getFont(R.font.poppins_medium));
-
-            item.addView(circle);
-            item.addView(name);
-            item.setOnClickListener(v -> {
-                selectedColorHex = color.hex;
-                Toast.makeText(this, "Selected: " + color.name, Toast.LENGTH_SHORT).show();
-            });
-            colorGrid.addView(item);
-        }
+    private void setFinishListener(LinearLayout layout, String finish) {
+        layout.setOnClickListener(v -> {
+            selectedFinish = finish;
+            updateFinishUI(finish);
+        });
     }
 
-    private void updateFinishState(String type) {
-        selectedFinish = type;
-        resetFinishCard(btnGlossy);
-        resetFinishCard(btnMatte);
-        resetFinishCard(btnChrome);
-        resetFinishCard(btnGlitter);
-
-        LinearLayout active = btnGlossy;
-        if (type.equals("Matte")) active = btnMatte;
-        else if (type.equals("Chrome")) active = btnChrome;
-        else if (type.equals("Glitter")) active = btnGlitter;
-        setActiveFinishCard(active);
+    private void updateFinishUI(String activeFinish) {
+        resetFinishStyle(btnFinishGlossy);
+        resetFinishStyle(btnFinishMatte);
+        resetFinishStyle(btnFinishChrome);
+        resetFinishStyle(btnFinishGlitter);
+        if (activeFinish.equals("Glossy")) setActiveFinishStyle(btnFinishGlossy);
+        else if (activeFinish.equals("Matte")) setActiveFinishStyle(btnFinishMatte);
+        else if (activeFinish.equals("Chrome")) setActiveFinishStyle(btnFinishChrome);
+        else if (activeFinish.equals("Glitter")) setActiveFinishStyle(btnFinishGlitter);
     }
 
-    private void resetFinishCard(LinearLayout layout) {
-        if (layout == null) return;
+    private void resetFinishStyle(LinearLayout layout) {
         layout.setBackgroundResource(R.drawable.bg_card_rounded);
-        TextView text = (TextView) layout.getChildAt(1);
-        if (text != null) text.setTextColor(getColor(R.color.text_primary));
-        // DO NOT change image color filter – keep original icon color
     }
 
-    private void setActiveFinishCard(LinearLayout layout) {
-        if (layout == null) return;
+    private void setActiveFinishStyle(LinearLayout layout) {
         GradientDrawable gd = new GradientDrawable();
         gd.setShape(GradientDrawable.RECTANGLE);
-        gd.setCornerRadius(32f);
+        gd.setCornerRadius(20f);
         gd.setColor(getColor(R.color.lavender_dark));
         layout.setBackground(gd);
-        TextView text = (TextView) layout.getChildAt(1);
-        if (text != null) text.setTextColor(getColor(R.color.white));
-        // DO NOT change image color filter – keep original icon color
     }
 
-    private void setupAddonToggle(int layoutId, String name) {
-        LinearLayout layout = findViewById(layoutId);
-        if (layout == null) return;
+    private void setAddonListener(LinearLayout layout, String addonName) {
         layout.setOnClickListener(v -> {
-            if (selectedAddons.contains(name)) {
-                selectedAddons.remove(name);
-                resetAddonCard(layout);
+            if (selectedAddons.contains(addonName)) {
+                selectedAddons.remove(addonName);
+                layout.setBackgroundResource(R.drawable.bg_card_rounded);
             } else {
-                selectedAddons.add(name);
-                setActiveAddonCard(layout);
+                selectedAddons.add(addonName);
+                GradientDrawable gd = new GradientDrawable();
+                gd.setShape(GradientDrawable.RECTANGLE);
+                gd.setCornerRadius(20f);
+                gd.setColor(getColor(R.color.lavender_light));
+                gd.setStroke(2, getColor(R.color.lavender_dark));
+                layout.setBackground(gd);
             }
         });
     }
 
-    private void resetAddonCard(LinearLayout layout) {
-        layout.setBackgroundResource(R.drawable.bg_card_rounded);
-        TextView text = (TextView) layout.getChildAt(1);
-        if (text != null) text.setTextColor(getColor(R.color.text_primary));
-        // DO NOT change image color filter
+    private void checkAndOpenGallery() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    PERMISSION_REQUEST);
+        } else {
+            openGallery();
+        }
     }
 
-    private void setActiveAddonCard(LinearLayout layout) {
-        GradientDrawable gd = new GradientDrawable();
-        gd.setShape(GradientDrawable.RECTANGLE);
-        gd.setCornerRadius(32f);
-        gd.setColor(getColor(R.color.lavender_dark));
-        layout.setBackground(gd);
-        TextView text = (TextView) layout.getChildAt(1);
-        if (text != null) text.setTextColor(getColor(R.color.white));
-        // DO NOT change image color filter
+    private void openGallery() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(intent, PICK_IMAGE_REQUEST);
     }
 
-    private static class ColorItem {
-        String name;
-        String hex;
-        ColorItem(String name, String hex) {
-            this.name = name;
-            this.hex = hex;
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
+            Uri imageUri = data.getData();
+            uploadedImagePath = imageUri.toString();
+            tvUploadStatus.setText("Foto terpilih ✅");
+            tvUploadStatus.setVisibility(android.view.View.VISIBLE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            openGallery();
+        } else {
+            Toast.makeText(this, "Izin penyimpanan diperlukan untuk upload foto", Toast.LENGTH_SHORT).show();
         }
     }
 }

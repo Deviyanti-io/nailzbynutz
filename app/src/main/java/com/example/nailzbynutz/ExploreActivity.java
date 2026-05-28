@@ -32,11 +32,12 @@ public class ExploreActivity extends AppCompatActivity {
         etSearch = findViewById(R.id.et_search);
 
         rvExplore.setLayoutManager(new GridLayoutManager(this, 2));
+
         loadNailData();
+
         adapter = new ExploreAdapter(this, nailList);
         rvExplore.setAdapter(adapter);
 
-        // Search filter
         etSearch.addTextChangedListener(new android.text.TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -51,15 +52,20 @@ public class ExploreActivity extends AppCompatActivity {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
                 startActivity(new Intent(this, MainNavigationActivity.class));
+                overridePendingTransition(0, 0);
                 finish();
                 return true;
             } else if (id == R.id.nav_explore) {
                 return true;
             } else if (id == R.id.nav_history) {
                 startActivity(new Intent(this, HistoryActivity.class));
+                overridePendingTransition(0, 0);
+                finish();
                 return true;
             } else if (id == R.id.nav_profile) {
                 startActivity(new Intent(this, ProfileActivity.class));
+                overridePendingTransition(0, 0);
+                finish();
                 return true;
             }
             return false;
@@ -82,16 +88,20 @@ public class ExploreActivity extends AppCompatActivity {
                 "80.000", "80.000", "80.000", "90.000", "90.000",
                 "85.000", "85.000", "90.000", "95.000"
         };
+        int[] images = {
+                R.drawable.nail1, R.drawable.nail2, R.drawable.nail3, R.drawable.nail4,
+                R.drawable.nail5, R.drawable.nail6, R.drawable.nail7, R.drawable.nail8,
+                R.drawable.nail9, R.drawable.nail10, R.drawable.nail11, R.drawable.nail12,
+                R.drawable.nail13, R.drawable.nail14, R.drawable.nail15, R.drawable.nail16,
+                R.drawable.nail17, R.drawable.nail18, R.drawable.nail19, R.drawable.nail20,
+                R.drawable.nail21, R.drawable.nail22, R.drawable.nail23, R.drawable.nail24
+        };
+
         fullList.clear();
-        for (int i = 1; i <= 24; i++) {
-            int resId = getResources().getIdentifier("nail" + i, "drawable", getPackageName());
-            if (resId != 0) {
-                fullList.add(new NailModel(names[i-1], "Rp " + prices[i-1], resId));
-            } else {
-                // Fallback jika gambar tidak ada
-                fullList.add(new NailModel(names[i-1], "Rp " + prices[i-1], R.drawable.nail1));
-            }
+        for (int i = 0; i < names.length; i++) {
+            fullList.add(new NailModel(names[i], "Rp " + prices[i], images[i], false));
         }
+
         nailList.clear();
         nailList.addAll(fullList);
     }

@@ -26,7 +26,7 @@ public class MainNavigationActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_navigation);
 
-        // Ambil data user
+        // Ambil data session nama user yang masuk
         if (getIntent().hasExtra("USER_NAME")) {
             currentUsername = getIntent().getStringExtra("USER_NAME");
         } else {
@@ -34,7 +34,7 @@ public class MainNavigationActivity extends AppCompatActivity {
             currentUsername = session.getString("USER_NAME", "Guest");
         }
 
-        // Inisialisasi view
+        // SESUAI KODE ASLI KAMU: Inisialisasi komponen layout berdasarkan ID aslinya
         layoutHomePage = findViewById(R.id.layout_home_page);
         tvWelcomeUser = findViewById(R.id.tv_welcome_user);
         menuGelNail = findViewById(R.id.menu_gel_nail);
@@ -42,21 +42,25 @@ public class MainNavigationActivity extends AppCompatActivity {
         menuManicure = findViewById(R.id.menu_manicure);
         bottomNav = findViewById(R.id.bottom_navigation);
 
-        // Set greeting
+        // Set teks sambutan nama user
         tvWelcomeUser.setText("Hi, " + currentUsername + "! 👋");
 
-        // Klik menu layanan
+        // SESUAI KODE ASLI KAMU: Klik menu layanan kuku
         menuPressOnNail.setOnClickListener(v -> {
             startActivity(new Intent(this, CustomNailShapeActivity.class));
         });
+
+        // Membuka halaman GelPolishActivity saat menu Gel Nail ditekan (Memperbaiki tombol macet)
         menuGelNail.setOnClickListener(v -> {
             startActivity(new Intent(this, GelPolishActivity.class));
         });
+
+        // Membuka halaman ManicureActivity saat menu Manicure ditekan (Memperbaiki tombol macet)
         menuManicure.setOnClickListener(v -> {
             startActivity(new Intent(this, ManicureActivity.class));
         });
 
-        // Bottom navigation
+        // PERBAIKAN NAVIGASI BAWAH: Mengaktifkan perpindahan menu bar bawah secara mulus
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
@@ -64,18 +68,22 @@ public class MainNavigationActivity extends AppCompatActivity {
                 return true;
             } else if (id == R.id.nav_explore) {
                 startActivity(new Intent(this, ExploreActivity.class));
+                overridePendingTransition(0, 0); // Menghilangkan efek kedip animasi transisi
                 return true;
             } else if (id == R.id.nav_history) {
                 startActivity(new Intent(this, HistoryActivity.class));
+                overridePendingTransition(0, 0);
                 return true;
             } else if (id == R.id.nav_profile) {
+                // Membuka halaman ProfileActivity secara lancar tanpa macet lagi
                 startActivity(new Intent(this, ProfileActivity.class));
+                overridePendingTransition(0, 0);
                 return true;
             }
             return false;
         });
 
-        // Set default menu home aktif
+        // Set default menu home aktif di awal
         bottomNav.setSelectedItemId(R.id.nav_home);
     }
 }

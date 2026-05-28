@@ -14,18 +14,15 @@ import androidx.appcompat.widget.AppCompatButton;
 
 public class CustomNailShapeActivity extends AppCompatActivity {
 
-    // Deklarasi view
     private ImageView btnBack;
     private LinearLayout btnAlmond, btnCoffin, btnSquare, btnOval, btnStiletto, btnRound, btnSquoval, btnLipstick;
     private TextView tvAlmond, tvCoffin, tvSquare, tvOval, tvStiletto, tvRound, tvSquoval, tvLipstick;
     private AppCompatButton btnNext, btnShort, btnMedium, btnLong;
 
-    // Data yang dipilih user
     private String selectedShape = "Almond";
     private String selectedLength = "Medium";
 
-    // Warna tema
-    private final String COLOR_ACTIVE_BG = "#7E8DBB";   // lavender_dark
+    private final String COLOR_ACTIVE_BG = "#7E8DBB";
     private final String COLOR_ACTIVE_TEXT = "#FFFFFF";
     private final String COLOR_INACTIVE_BG = "#FFFFFF";
     private final String COLOR_INACTIVE_TEXT = "#2D2A32";
@@ -35,7 +32,6 @@ public class CustomNailShapeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom_nail_shape);
 
-        // Inisialisasi view
         btnBack = findViewById(R.id.btn_back);
         btnAlmond = findViewById(R.id.btn_shape_almond);
         btnCoffin = findViewById(R.id.btn_shape_coffin);
@@ -58,10 +54,8 @@ public class CustomNailShapeActivity extends AppCompatActivity {
         btnLong = findViewById(R.id.btn_len_long);
         btnNext = findViewById(R.id.btn_next_step);
 
-        // Tombol back: kembali ke activity sebelumnya
         btnBack.setOnClickListener(v -> finish());
 
-        // Listener untuk shape
         setShapeClickListener(btnAlmond, tvAlmond, "Almond");
         setShapeClickListener(btnCoffin, tvCoffin, "Coffin");
         setShapeClickListener(btnSquare, tvSquare, "Square");
@@ -71,7 +65,6 @@ public class CustomNailShapeActivity extends AppCompatActivity {
         setShapeClickListener(btnSquoval, tvSquoval, "Squoval");
         setShapeClickListener(btnLipstick, tvLipstick, "Lipstick");
 
-        // Listener untuk length
         btnShort.setOnClickListener(v -> {
             selectedLength = "Short";
             updateLengthUI();
@@ -85,11 +78,9 @@ public class CustomNailShapeActivity extends AppCompatActivity {
             updateLengthUI();
         });
 
-        // Set tampilan awal
         updateShapeUI(selectedShape);
         updateLengthUI();
 
-        // Tombol next: pindah ke CustomNailColorActivity
         btnNext.setOnClickListener(v -> {
             Intent intent = new Intent(CustomNailShapeActivity.this, CustomNailColorActivity.class);
             intent.putExtra("SHAPE_DATA", selectedShape);
@@ -98,7 +89,6 @@ public class CustomNailShapeActivity extends AppCompatActivity {
         });
     }
 
-    // Helper: set listener untuk shape
     private void setShapeClickListener(LinearLayout layout, TextView textView, String shapeName) {
         layout.setOnClickListener(v -> {
             selectedShape = shapeName;
@@ -107,9 +97,7 @@ public class CustomNailShapeActivity extends AppCompatActivity {
         });
     }
 
-    // Update UI shape: ubah background dan teks
     private void updateShapeUI(String activeShape) {
-        // Reset semua ke inactive
         applyShapeStyle(btnAlmond, tvAlmond, COLOR_INACTIVE_BG, COLOR_INACTIVE_TEXT);
         applyShapeStyle(btnCoffin, tvCoffin, COLOR_INACTIVE_BG, COLOR_INACTIVE_TEXT);
         applyShapeStyle(btnSquare, tvSquare, COLOR_INACTIVE_BG, COLOR_INACTIVE_TEXT);
@@ -119,7 +107,6 @@ public class CustomNailShapeActivity extends AppCompatActivity {
         applyShapeStyle(btnSquoval, tvSquoval, COLOR_INACTIVE_BG, COLOR_INACTIVE_TEXT);
         applyShapeStyle(btnLipstick, tvLipstick, COLOR_INACTIVE_BG, COLOR_INACTIVE_TEXT);
 
-        // Aktifkan yang dipilih
         switch (activeShape) {
             case "Almond": applyShapeStyle(btnAlmond, tvAlmond, COLOR_ACTIVE_BG, COLOR_ACTIVE_TEXT); break;
             case "Coffin": applyShapeStyle(btnCoffin, tvCoffin, COLOR_ACTIVE_BG, COLOR_ACTIVE_TEXT); break;
@@ -132,7 +119,6 @@ public class CustomNailShapeActivity extends AppCompatActivity {
         }
     }
 
-    // Menerapkan style pada satu tombol shape
     private void applyShapeStyle(LinearLayout layout, TextView textView, String bgColorHex, String textColorHex) {
         if (layout == null || textView == null) return;
         GradientDrawable gd = new GradientDrawable();
@@ -143,7 +129,6 @@ public class CustomNailShapeActivity extends AppCompatActivity {
         textView.setTextColor(Color.parseColor(textColorHex));
     }
 
-    // Update UI tombol length
     private void updateLengthUI() {
         resetLengthButtonStyle(btnShort);
         resetLengthButtonStyle(btnMedium);
@@ -161,7 +146,6 @@ public class CustomNailShapeActivity extends AppCompatActivity {
     private void resetLengthButtonStyle(AppCompatButton button) {
         button.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(COLOR_INACTIVE_BG)));
         button.setTextColor(Color.parseColor(COLOR_INACTIVE_TEXT));
-        // Tambahkan stroke
         button.setTextColor(Color.parseColor("#E8E3F5"));
         button.setWidth(1);
     }
@@ -169,6 +153,6 @@ public class CustomNailShapeActivity extends AppCompatActivity {
     private void setActiveLengthButtonStyle(AppCompatButton button) {
         button.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(COLOR_ACTIVE_BG)));
         button.setTextColor(Color.parseColor(COLOR_ACTIVE_TEXT));
-        button.setWidth(0); // hilangkan stroke
+        button.setWidth(0);
     }
 }
