@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="6dp"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="0dp"
+    app:cardBackgroundColor="@color/background_card">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp">
+
+        <!-- Gambar kuku -->
+        <ImageView
+            android:id="@+id/iv_nail_image"
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:scaleType="centerCrop" />
+
+        <!-- Tombol heart di pojok kanan atas gambar -->
+        <ImageView
+            android:id="@+id/iv_heart"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_margin="8dp"
+            android:src="@drawable/ic_heart_off"
+            android:padding="4dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Nama produk -->
+        <TextView
+            android:id="@+id/tv_nail_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/iv_nail_image"
+            android:layout_marginTop="12dp"
+            android:text="Nail Name"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:fontFamily="@font/poppins_bold" />
+
+        <!-- Harga -->
+        <TextView
+            android:id="@+id/tv_nail_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tv_nail_name"
+            android:text="Rp 0"
+            android:textColor="@color/lavender_dark"
+            android:textSize="13sp"
+            android:fontFamily="@font/poppins_medium"
+            android:layout_marginTop="4dp" />
+
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>
