@@ -23,31 +23,33 @@
         </activity>
 
         <!-- Auth Activities -->
-        <activity android:name=".LoginActivity" />
-        <activity android:name=".SignUpActivity" />
+        <activity android:name=".LoginActivity" android:exported="false" />
+        <activity android:name=".SignUpActivity" android:exported="false" />
 
-        <!-- Main Navigation (Home + Profile) -->
-        <activity android:name=".MainNavigationActivity"/>
-        <activity android:name=".GelPolishActivity" />
-        <activity android:name=".ManicureActivity" />/>
+        <!-- Main Navigation -->
+        <activity android:name=".MainNavigationActivity" android:exported="false" />
 
         <!-- Explore & Wishlist -->
-        <activity android:name=".ExploreActivity" />
-        <activity android:name=".WishlistActivity" />
+        <activity android:name=".ExploreActivity" android:exported="false" />
+        <activity android:name=".WishlistActivity" android:exported="false" />
 
         <!-- Services & History -->
-        <activity android:name=".ServicesActivity" />
-        <activity android:name=".HistoryActivity" />
+        <activity android:name=".ServicesActivity" android:exported="false" />
+        <activity android:name=".HistoryActivity" android:exported="false" />
 
         <!-- Booking & Custom Nail Flow -->
-        <activity android:name=".BookingAppointmentActivity" />
-        <activity android:name=".CustomNailShapeActivity" />
-        <activity android:name=".CustomNailColorActivity" />
-        <activity android:name=".CustomNailDetailsActivity" />
-        <activity android:name=".CustomNailReviewActivity" />
+        <activity android:name=".BookingAppointmentActivity" android:exported="false" />
+        <activity android:name=".CustomNailShapeActivity" android:exported="false" />
+        <activity android:name=".CustomNailColorActivity" android:exported="false" />
+        <activity android:name=".CustomNailDetailsActivity" android:exported="false" />
+        <activity android:name=".CustomNailReviewActivity" android:exported="false" />
 
-        <!-- Profile (standalone) -->
-        <activity android:name=".ProfileActivity" />
+        <!-- Profile standalone -->
+        <activity android:name=".ProfileActivity" android:exported="false" />
+
+        <!-- Detail services -->
+        <activity android:name=".GelPolishActivity" android:exported="false" />
+        <activity android:name=".ManicureActivity" android:exported="false" />
 
     </application>
 

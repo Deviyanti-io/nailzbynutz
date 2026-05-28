@@ -11,7 +11,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/bottom_navigation"
-        android:visibility="visible"
         android:scrollbars="none"
         android:padding="20dp"
         android:clipToPadding="false">
@@ -355,6 +354,7 @@
 
         </LinearLayout>
     </ScrollView>
+
     <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"

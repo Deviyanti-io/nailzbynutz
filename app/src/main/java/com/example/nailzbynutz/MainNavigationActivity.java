@@ -5,8 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,13 +14,10 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainNavigationActivity extends AppCompatActivity {
 
-    // Deklarasi view
     private ScrollView layoutHomePage;
-    private LinearLayout layoutProfilePage;
-    private TextView tvWelcomeUser, tvProfileName, tvProfileEmail;
+    private TextView tvWelcomeUser;
     private CardView menuGelNail, menuPressOnNail, menuManicure;
     private BottomNavigationView bottomNav;
-    private Button btnLogout;
     private String currentUsername = "Guest";
 
     @SuppressLint("MissingInflatedId")
@@ -31,7 +26,7 @@ public class MainNavigationActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_navigation);
 
-        // Ambil data user dari Intent atau SharedPreferences
+        // Ambil data user
         if (getIntent().hasExtra("USER_NAME")) {
             currentUsername = getIntent().getStringExtra("USER_NAME");
         } else {
@@ -41,32 +36,24 @@ public class MainNavigationActivity extends AppCompatActivity {
 
         // Inisialisasi view
         layoutHomePage = findViewById(R.id.layout_home_page);
-        layoutProfilePage = findViewById(R.id.layout_profile_page);
         tvWelcomeUser = findViewById(R.id.tv_welcome_user);
-        tvProfileName = findViewById(R.id.tv_profile_name);
-        tvProfileEmail = findViewById(R.id.tv_profile_email);
         menuGelNail = findViewById(R.id.menu_gel_nail);
         menuPressOnNail = findViewById(R.id.menu_press_on_nail);
         menuManicure = findViewById(R.id.menu_manicure);
         bottomNav = findViewById(R.id.bottom_navigation);
-        btnLogout = findViewById(R.id.btn_logout);
 
-        // Set data user
-        SharedPreferences userPrefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-        String savedEmail = userPrefs.getString("SAVED_EMAIL", "email@example.com");
+        // Set greeting
         tvWelcomeUser.setText("Hi, " + currentUsername + "! 👋");
-        tvProfileName.setText(currentUsername);
-        tvProfileEmail.setText(savedEmail);
 
         // Klik menu layanan
         menuPressOnNail.setOnClickListener(v -> {
             startActivity(new Intent(this, CustomNailShapeActivity.class));
         });
         menuGelNail.setOnClickListener(v -> {
-            Toast.makeText(this, "Gel Nail service coming soon!", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, GelPolishActivity.class));
         });
         menuManicure.setOnClickListener(v -> {
-            Toast.makeText(this, "Manicure service coming soon!", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, ManicureActivity.class));
         });
 
         // Bottom navigation
@@ -74,7 +61,6 @@ public class MainNavigationActivity extends AppCompatActivity {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
                 layoutHomePage.setVisibility(View.VISIBLE);
-                layoutProfilePage.setVisibility(View.GONE);
                 return true;
             } else if (id == R.id.nav_explore) {
                 startActivity(new Intent(this, ExploreActivity.class));
@@ -83,18 +69,13 @@ public class MainNavigationActivity extends AppCompatActivity {
                 startActivity(new Intent(this, HistoryActivity.class));
                 return true;
             } else if (id == R.id.nav_profile) {
-                layoutHomePage.setVisibility(View.GONE);
-                layoutProfilePage.setVisibility(View.VISIBLE);
+                startActivity(new Intent(this, ProfileActivity.class));
                 return true;
             }
             return false;
         });
 
-        // Logout
-        btnLogout.setOnClickListener(v -> {
-            getSharedPreferences("UserSession", MODE_PRIVATE).edit().clear().apply();
-            startActivity(new Intent(this, LoginActivity.class));
-            finish();
-        });
+        // Set default menu home aktif
+        bottomNav.setSelectedItemId(R.id.nav_home);
     }
 }

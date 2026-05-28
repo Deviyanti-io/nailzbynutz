@@ -16,7 +16,6 @@ import java.util.ArrayList;
 
 public class CustomNailDetailsActivity extends AppCompatActivity {
 
-    // View components
     private ImageView btnBack;
     private Button btnNext;
     private Button btnSizeS, btnSizeM, btnSizeL;
@@ -26,11 +25,9 @@ public class CustomNailDetailsActivity extends AppCompatActivity {
     private TextView btnShowGuide;
     private EditText etSpecialNotes;
 
-    // Size values (default M)
     private int thumbVal = 16, indexVal = 12, middleVal = 13, ringVal = 12, pinkyVal = 10;
     private String selectedPreset = "M";
 
-    // Data from previous activities
     private String dataShape, dataLength, dataColorType, dataColorHex, dataFinish, uploadedImage;
     private ArrayList<String> addonsList = new ArrayList<>();
 
@@ -39,7 +36,6 @@ public class CustomNailDetailsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom_nail_details);
 
-        // Get data from intent
         Intent incoming = getIntent();
         dataShape = incoming.getStringExtra("SHAPE_DATA");
         dataLength = incoming.getStringExtra("LENGTH_DATA");
@@ -75,28 +71,21 @@ public class CustomNailDetailsActivity extends AppCompatActivity {
         btnShowGuide = findViewById(R.id.btn_show_guide);
         etSpecialNotes = findViewById(R.id.et_special_notes);
 
-        // Set default size M
         applyPresetSize("M", 16, 12, 13, 12, 10);
 
-        // Preset size listeners
         btnSizeS.setOnClickListener(v -> applyPresetSize("S", 15, 11, 12, 11, 9));
         btnSizeM.setOnClickListener(v -> applyPresetSize("M", 16, 12, 13, 12, 10));
         btnSizeL.setOnClickListener(v -> applyPresetSize("L", 17, 13, 14, 13, 11));
 
-        // +/- listeners
         setupCounter(btnMinusThumb, btnPlusThumb, tvThumb, "thumb");
         setupCounter(btnMinusIndex, btnPlusIndex, tvIndex, "index");
         setupCounter(btnMinusMiddle, btnPlusMiddle, tvMiddle, "middle");
         setupCounter(btnMinusRing, btnPlusRing, tvRing, "ring");
         setupCounter(btnMinusPinky, btnPlusPinky, tvPinky, "pinky");
 
-        // Guide dialog
         btnShowGuide.setOnClickListener(v -> showSizeGuide());
-
-        // Back button
         btnBack.setOnClickListener(v -> finish());
 
-        // Next button
         btnNext.setOnClickListener(v -> {
             String sizeReport = selectedPreset + " (" + thumbVal + "-" + indexVal + "-" + middleVal + "-" + ringVal + "-" + pinkyVal + "mm)";
             String notes = etSpecialNotes.getText().toString().trim();
@@ -170,12 +159,11 @@ public class CustomNailDetailsActivity extends AppCompatActivity {
         if (active) {
             gd.setColor(getColor(R.color.lavender_dark));
             btn.setTextColor(getColor(R.color.white));
-            btn.setWidth(0);
+            gd.setStroke(0, Color.TRANSPARENT);
         } else {
             gd.setColor(getColor(R.color.background_card));
             btn.setTextColor(getColor(R.color.text_primary));
-            btn.setWidth(1);
-            btn.setTextColor(getColor(R.color.divider));
+            gd.setStroke(2, getColor(R.color.divider));
         }
         btn.setBackground(gd);
     }

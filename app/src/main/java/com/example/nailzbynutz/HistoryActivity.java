@@ -1,5 +1,6 @@
 package com.example.nailzbynutz;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -12,12 +13,14 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.res.ResourcesCompat;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class HistoryActivity extends AppCompatActivity {
 
     private LinearLayout bookingContainer;
+    private BottomNavigationView bottomNav;
     private Typeface poppinsMedium, poppinsBold, fredoka;
 
     @Override
@@ -26,11 +29,33 @@ public class HistoryActivity extends AppCompatActivity {
         setContentView(R.layout.activity_history);
 
         bookingContainer = findViewById(R.id.bookingContainer);
+        bottomNav = findViewById(R.id.bottom_navigation);
+
         poppinsMedium = ResourcesCompat.getFont(this, R.font.poppins_medium);
         poppinsBold = ResourcesCompat.getFont(this, R.font.poppins_bold);
         fredoka = ResourcesCompat.getFont(this, R.font.fredoka_bold);
 
         findViewById(R.id.btn_back_history).setOnClickListener(v -> finish());
+
+        // Bottom navigation
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_home) {
+                startActivity(new Intent(this, MainNavigationActivity.class));
+                finish();
+                return true;
+            } else if (id == R.id.nav_explore) {
+                startActivity(new Intent(this, ExploreActivity.class));
+                return true;
+            } else if (id == R.id.nav_history) {
+                return true;
+            } else if (id == R.id.nav_profile) {
+                startActivity(new Intent(this, ProfileActivity.class));
+                return true;
+            }
+            return false;
+        });
+        bottomNav.setSelectedItemId(R.id.nav_history);
 
         loadBookings();
     }
@@ -42,13 +67,7 @@ public class HistoryActivity extends AppCompatActivity {
         try {
             JSONArray bookings = new JSONArray(json);
             if (bookings.length() == 0) {
-                TextView empty = new TextView(this);
-                empty.setText("Belum ada booking");
-                empty.setGravity(Gravity.CENTER);
-                empty.setPadding(0, 100, 0, 0);
-                empty.setTextColor(getColor(R.color.text_secondary));
-                empty.setTypeface(poppinsMedium);
-                bookingContainer.addView(empty);
+                showEmptyMessage();
                 return;
             }
             for (int i = bookings.length() - 1; i >= 0; i--) {
@@ -57,7 +76,18 @@ public class HistoryActivity extends AppCompatActivity {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            showEmptyMessage();
         }
+    }
+
+    private void showEmptyMessage() {
+        TextView empty = new TextView(this);
+        empty.setText("Belum ada booking");
+        empty.setGravity(Gravity.CENTER);
+        empty.setPadding(0, 100, 0, 0);
+        empty.setTextColor(getColor(R.color.text_secondary));
+        empty.setTypeface(poppinsMedium);
+        bookingContainer.addView(empty);
     }
 
     private void addBookingCard(JSONObject booking) throws Exception {
@@ -85,12 +115,10 @@ public class HistoryActivity extends AppCompatActivity {
         content.setOrientation(LinearLayout.VERTICAL);
         content.setPadding(24, 24, 24, 24);
 
-        // Top row: date box + info
         LinearLayout topRow = new LinearLayout(this);
         topRow.setOrientation(LinearLayout.HORIZONTAL);
         topRow.setGravity(Gravity.CENTER_VERTICAL);
 
-        // Date box
         LinearLayout dateBox = new LinearLayout(this);
         dateBox.setOrientation(LinearLayout.VERTICAL);
         dateBox.setGravity(Gravity.CENTER);
@@ -109,7 +137,6 @@ public class HistoryActivity extends AppCompatActivity {
         dateBox.addView(tvDate);
         dateBox.addView(tvMonth);
 
-        // Info
         LinearLayout info = new LinearLayout(this);
         info.setOrientation(LinearLayout.VERTICAL);
         info.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
@@ -124,7 +151,6 @@ public class HistoryActivity extends AppCompatActivity {
         tvSub.setTextSize(12);
         tvSub.setTextColor(getColor(R.color.text_secondary));
         tvSub.setTypeface(poppinsMedium);
-        // Color indicator
         View colorIndicator = new View(this);
         LinearLayout.LayoutParams colorParams = new LinearLayout.LayoutParams(20, 20);
         colorParams.setMargins(0, 6, 0, 6);
@@ -161,22 +187,6 @@ public class HistoryActivity extends AppCompatActivity {
         topRow.addView(tvStatus);
         content.addView(topRow);
 
-        // View Details button (optional, bisa ditambah edit/hapus)
-        TextView btnDetails = new TextView(this);
-        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                48
-        );
-        btnParams.topMargin = 16;
-        btnDetails.setLayoutParams(btnParams);
-        btnDetails.setText("View Details");
-        btnDetails.setTextSize(12);
-        btnDetails.setTextColor(getColor(R.color.lavender_dark));
-        btnDetails.setTypeface(poppinsBold);
-        btnDetails.setGravity(Gravity.CENTER);
-        btnDetails.setBackground(getButtonBackground());
-        content.addView(btnDetails);
-
         card.addView(content);
         bookingContainer.addView(card);
     }
@@ -185,14 +195,6 @@ public class HistoryActivity extends AppCompatActivity {
         GradientDrawable gd = new GradientDrawable();
         gd.setShape(GradientDrawable.RECTANGLE);
         gd.setCornerRadius(16f);
-        gd.setColor(getColor(R.color.lavender_light));
-        return gd;
-    }
-
-    private GradientDrawable getButtonBackground() {
-        GradientDrawable gd = new GradientDrawable();
-        gd.setShape(GradientDrawable.RECTANGLE);
-        gd.setCornerRadius(24f);
         gd.setColor(getColor(R.color.lavender_light));
         return gd;
     }

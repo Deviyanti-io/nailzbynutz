@@ -38,10 +38,9 @@ public class CustomNailColorActivity extends AppCompatActivity {
     private String dataShape = "Almond", dataLength = "Medium";
     private String uploadedImageUri = "";
 
-    // Gallery launcher
     private ActivityResultLauncher<Intent> galleryLauncher;
 
-    // Color lists for each category
+    // Color lists
     private List<ColorItem> solidColors = new ArrayList<>();
     private List<ColorItem> ombreColors = new ArrayList<>();
     private List<ColorItem> frenchColors = new ArrayList<>();
@@ -52,7 +51,6 @@ public class CustomNailColorActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom_nail_color);
 
-        // Get data from previous activity
         if (getIntent().hasExtra("SHAPE_DATA")) dataShape = getIntent().getStringExtra("SHAPE_DATA");
         if (getIntent().hasExtra("LENGTH_DATA")) dataLength = getIntent().getStringExtra("LENGTH_DATA");
 
@@ -70,7 +68,7 @@ public class CustomNailColorActivity extends AppCompatActivity {
         btnUploadPhoto = findViewById(R.id.btn_upload_photo_container);
         colorGrid = findViewById(R.id.color_grid);
 
-        // Setup gallery launcher
+        // Gallery launcher
         galleryLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -81,29 +79,28 @@ public class CustomNailColorActivity extends AppCompatActivity {
                             Toast.makeText(this, "Foto referensi berhasil dimuat!", Toast.LENGTH_SHORT).show();
                         }
                     }
-                }
-        );
+                });
 
-        // Populate color data
+        // Populate color data (full)
         populateColors();
 
         // Set default states
         updateColorTypeState("Solid");
         updateFinishState("Glossy");
 
-        // Click listeners for color type tabs
+        // Tab listeners
         btnTypeSolid.setOnClickListener(v -> updateColorTypeState("Solid"));
         btnTypeGradient.setOnClickListener(v -> updateColorTypeState("Ombre"));
         btnTypeFrench.setOnClickListener(v -> updateColorTypeState("French Tip"));
         btnTypeCatEye.setOnClickListener(v -> updateColorTypeState("Cat Eye"));
 
-        // Click listeners for finish options
+        // Finish listeners (without messing with image color filter)
         btnGlossy.setOnClickListener(v -> updateFinishState("Glossy"));
         btnMatte.setOnClickListener(v -> updateFinishState("Matte"));
         btnChrome.setOnClickListener(v -> updateFinishState("Chrome"));
         btnGlitter.setOnClickListener(v -> updateFinishState("Glitter"));
 
-        // Add-ons click listeners
+        // Add-ons
         setupAddonToggle(R.id.addon_charms, "Charms");
         setupAddonToggle(R.id.addon_pearls, "Pearls");
         setupAddonToggle(R.id.addon_rhinestone, "Rhinestone");
@@ -111,16 +108,13 @@ public class CustomNailColorActivity extends AppCompatActivity {
         setupAddonToggle(R.id.addon_stickers, "Stickers");
         setupAddonToggle(R.id.addon_bow, "Bow");
 
-        // Upload photo
         btnUploadPhoto.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             galleryLauncher.launch(intent);
         });
 
-        // Back button
         btnBack.setOnClickListener(v -> finish());
 
-        // Next button
         btnNext.setOnClickListener(v -> {
             Intent intent = new Intent(CustomNailColorActivity.this, CustomNailDetailsActivity.class);
             intent.putExtra("SHAPE_DATA", dataShape);
@@ -135,7 +129,7 @@ public class CustomNailColorActivity extends AppCompatActivity {
     }
 
     private void populateColors() {
-        // Solid colors
+        // Solid colors (29 colors, full)
         solidColors.add(new ColorItem("Black", "#000000"));
         solidColors.add(new ColorItem("Milk White", "#F2F0EB"));
         solidColors.add(new ColorItem("Cherry Red", "#D6001C"));
@@ -166,7 +160,7 @@ public class CustomNailColorActivity extends AppCompatActivity {
         solidColors.add(new ColorItem("Denim Blue", "#5785A6"));
         solidColors.add(new ColorItem("Midnight Blue", "#1C364A"));
 
-        // Ombre colors
+        // Ombre colors (10 colors)
         ombreColors.add(new ColorItem("Blush Pink", "#FF9A9E"));
         ombreColors.add(new ColorItem("Orchid", "#FECFEF"));
         ombreColors.add(new ColorItem("Sky Blue", "#A1C4FD"));
@@ -178,7 +172,7 @@ public class CustomNailColorActivity extends AppCompatActivity {
         ombreColors.add(new ColorItem("Mint Fresh", "#84FAB0"));
         ombreColors.add(new ColorItem("Aqua Bloom", "#8FD3F4"));
 
-        // French Tip colors
+        // French Tip colors (8 colors)
         frenchColors.add(new ColorItem("Classic White", "#FFFFFF"));
         frenchColors.add(new ColorItem("Rose Petal", "#FFE4E1"));
         frenchColors.add(new ColorItem("Beige Silk", "#F5F5DC"));
@@ -188,7 +182,7 @@ public class CustomNailColorActivity extends AppCompatActivity {
         frenchColors.add(new ColorItem("Powder Blue", "#B0E0E6"));
         frenchColors.add(new ColorItem("Blossom", "#FFB6C1"));
 
-        // Cat Eye colors
+        // Cat Eye colors (6 colors)
         catEyeColors.add(new ColorItem("Galaxy Velvet", "#2E1A47"));
         catEyeColors.add(new ColorItem("Deep Cosmic", "#1A2E40"));
         catEyeColors.add(new ColorItem("Jade Magnetic", "#1A402E"));
@@ -199,20 +193,17 @@ public class CustomNailColorActivity extends AppCompatActivity {
 
     private void updateColorTypeState(String type) {
         selectedColorType = type;
-        // Reset tab buttons style
         resetTabButton(btnTypeSolid);
         resetTabButton(btnTypeGradient);
         resetTabButton(btnTypeFrench);
         resetTabButton(btnTypeCatEye);
 
-        // Activate selected tab
         Button activeTab = btnTypeSolid;
         if (type.equals("Ombre")) activeTab = btnTypeGradient;
         else if (type.equals("French Tip")) activeTab = btnTypeFrench;
         else if (type.equals("Cat Eye")) activeTab = btnTypeCatEye;
         setActiveTabButton(activeTab);
 
-        // Generate color grid based on type
         List<ColorItem> targetList = solidColors;
         if (type.equals("Ombre")) targetList = ombreColors;
         else if (type.equals("French Tip")) targetList = frenchColors;
@@ -224,21 +215,17 @@ public class CustomNailColorActivity extends AppCompatActivity {
         if (btn == null) return;
         btn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.background_card)));
         btn.setTextColor(getColor(R.color.text_primary));
-        btn.setStrokeWidth(1);
-        btn.setStrokeColor(getColor(R.color.divider));
     }
 
     private void setActiveTabButton(Button btn) {
         if (btn == null) return;
         btn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.lavender_dark)));
         btn.setTextColor(getColor(R.color.white));
-        btn.setStrokeWidth(0);
     }
 
     private void generateColorGrid(List<ColorItem> colors) {
         colorGrid.removeAllViews();
         for (ColorItem color : colors) {
-            // Item container
             LinearLayout item = new LinearLayout(this);
             item.setOrientation(LinearLayout.VERTICAL);
             item.setGravity(Gravity.CENTER);
@@ -246,7 +233,6 @@ public class CustomNailColorActivity extends AppCompatActivity {
             params.setMargins(12, 12, 12, 12);
             item.setLayoutParams(params);
 
-            // Circle color view
             View circle = new View(this);
             LinearLayout.LayoutParams circleParams = new LinearLayout.LayoutParams(80, 80);
             circle.setLayoutParams(circleParams);
@@ -258,7 +244,6 @@ public class CustomNailColorActivity extends AppCompatActivity {
             }
             circle.setBackground(shape);
 
-            // Color name
             TextView name = new TextView(this);
             name.setText(color.name);
             name.setTextSize(10);
@@ -269,12 +254,10 @@ public class CustomNailColorActivity extends AppCompatActivity {
 
             item.addView(circle);
             item.addView(name);
-
             item.setOnClickListener(v -> {
                 selectedColorHex = color.hex;
                 Toast.makeText(this, "Selected: " + color.name, Toast.LENGTH_SHORT).show();
             });
-
             colorGrid.addView(item);
         }
     }
@@ -298,8 +281,7 @@ public class CustomNailColorActivity extends AppCompatActivity {
         layout.setBackgroundResource(R.drawable.bg_card_rounded);
         TextView text = (TextView) layout.getChildAt(1);
         if (text != null) text.setTextColor(getColor(R.color.text_primary));
-        ImageView img = (ImageView) layout.getChildAt(0);
-        if (img != null) img.setColorFilter(getColor(R.color.text_primary));
+        // DO NOT change image color filter – keep original icon color
     }
 
     private void setActiveFinishCard(LinearLayout layout) {
@@ -311,8 +293,7 @@ public class CustomNailColorActivity extends AppCompatActivity {
         layout.setBackground(gd);
         TextView text = (TextView) layout.getChildAt(1);
         if (text != null) text.setTextColor(getColor(R.color.white));
-        ImageView img = (ImageView) layout.getChildAt(0);
-        if (img != null) img.setColorFilter(getColor(R.color.white));
+        // DO NOT change image color filter – keep original icon color
     }
 
     private void setupAddonToggle(int layoutId, String name) {
@@ -333,8 +314,7 @@ public class CustomNailColorActivity extends AppCompatActivity {
         layout.setBackgroundResource(R.drawable.bg_card_rounded);
         TextView text = (TextView) layout.getChildAt(1);
         if (text != null) text.setTextColor(getColor(R.color.text_primary));
-        ImageView img = (ImageView) layout.getChildAt(0);
-        if (img != null) img.setColorFilter(getColor(R.color.text_primary));
+        // DO NOT change image color filter
     }
 
     private void setActiveAddonCard(LinearLayout layout) {
@@ -345,11 +325,9 @@ public class CustomNailColorActivity extends AppCompatActivity {
         layout.setBackground(gd);
         TextView text = (TextView) layout.getChildAt(1);
         if (text != null) text.setTextColor(getColor(R.color.white));
-        ImageView img = (ImageView) layout.getChildAt(0);
-        if (img != null) img.setColorFilter(getColor(R.color.white));
+        // DO NOT change image color filter
     }
 
-    // Inner class for color item
     private static class ColorItem {
         String name;
         String hex;

@@ -22,11 +22,9 @@ public class ExploreAdapter extends RecyclerView.Adapter<ExploreAdapter.ViewHold
         this.nailList = nailList;
         this.wishlistPrefs = context.getSharedPreferences("WishlistPrefs", Context.MODE_PRIVATE);
         loadFavoriteStatusFromPrefs();
+        syncGlobalWishlist();
     }
-    public void updateList(List<NailModel> newList) {
-        this.nailList = newList;
-        notifyDataSetChanged();
-    }
+
     private void loadFavoriteStatusFromPrefs() {
         for (int i = 0; i < nailList.size(); i++) {
             boolean isFav = wishlistPrefs.getBoolean("fav_" + i, false);
@@ -36,6 +34,15 @@ public class ExploreAdapter extends RecyclerView.Adapter<ExploreAdapter.ViewHold
 
     private void saveFavoriteStatus(int position, boolean isFav) {
         wishlistPrefs.edit().putBoolean("fav_" + position, isFav).apply();
+    }
+
+    private void syncGlobalWishlist() {
+        NailModel.globalWishlist.clear();
+        for (NailModel nail : nailList) {
+            if (nail.isFavorite()) {
+                NailModel.globalWishlist.add(nail);
+            }
+        }
     }
 
     @NonNull
@@ -52,25 +59,24 @@ public class ExploreAdapter extends RecyclerView.Adapter<ExploreAdapter.ViewHold
         holder.tvPrice.setText(nail.getPrice());
         holder.ivImage.setImageResource(nail.getImageResId());
 
-        // Set icon heart sesuai status favorit
         if (nail.isFavorite()) {
             holder.ivHeart.setImageResource(R.drawable.ic_heart_on);
         } else {
             holder.ivHeart.setImageResource(R.drawable.ic_heart_off);
         }
 
-        // Klik heart untuk toggle favorit
         holder.ivHeart.setOnClickListener(v -> {
             boolean newStatus = !nail.isFavorite();
             nail.setFavorite(newStatus);
             saveFavoriteStatus(position, newStatus);
+            if (newStatus) {
+                if (!NailModel.globalWishlist.contains(nail)) {
+                    NailModel.globalWishlist.add(nail);
+                }
+            } else {
+                NailModel.globalWishlist.remove(nail);
+            }
             notifyItemChanged(position);
-        });
-
-        // Klik item untuk pindah ke halaman detail / custom nail
-        holder.itemView.setOnClickListener(v -> {
-            // Bisa pindah ke CustomNailShapeActivity dengan membawa data nama & harga
-            // Tergantung flow aplikasi
         });
     }
 
@@ -82,7 +88,6 @@ public class ExploreAdapter extends RecyclerView.Adapter<ExploreAdapter.ViewHold
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView ivImage, ivHeart;
         TextView tvName, tvPrice;
-
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             ivImage = itemView.findViewById(R.id.iv_nail_image);

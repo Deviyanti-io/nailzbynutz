@@ -19,6 +19,7 @@ public class ExploreActivity extends AppCompatActivity {
     private EditText etSearch;
     private ExploreAdapter adapter;
     private List<NailModel> nailList = new ArrayList<>();
+    private List<NailModel> fullList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,7 +31,6 @@ public class ExploreActivity extends AppCompatActivity {
         btnHeartTop = findViewById(R.id.btn_heart_top);
         etSearch = findViewById(R.id.et_search);
 
-        // Setup RecyclerView (grid 2 kolom)
         rvExplore.setLayoutManager(new GridLayoutManager(this, 2));
         loadNailData();
         adapter = new ExploreAdapter(this, nailList);
@@ -45,13 +45,8 @@ public class ExploreActivity extends AppCompatActivity {
             @Override public void afterTextChanged(android.text.Editable s) {}
         });
 
-        // Tombol heart top (buka WishlistActivity)
-        btnHeartTop.setOnClickListener(v -> {
-            Intent intent = new Intent(ExploreActivity.this, WishlistActivity.class);
-            startActivity(intent);
-        });
+        btnHeartTop.setOnClickListener(v -> startActivity(new Intent(this, WishlistActivity.class)));
 
-        // Bottom navigation
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
@@ -64,8 +59,7 @@ public class ExploreActivity extends AppCompatActivity {
                 startActivity(new Intent(this, HistoryActivity.class));
                 return true;
             } else if (id == R.id.nav_profile) {
-                // Nanti akan dibuat ProfileActivity terpisah
-                // startActivity(new Intent(this, ProfileActivity.class));
+                startActivity(new Intent(this, ProfileActivity.class));
                 return true;
             }
             return false;
@@ -74,8 +68,6 @@ public class ExploreActivity extends AppCompatActivity {
     }
 
     private void loadNailData() {
-        // Data produk sesuai gambar yang ada (nail1.jpg - nail24.jpg)
-        // Harga bervariasi antara 75.000 - 150.000
         String[] names = {
                 "Dreamy Lavender", "Bluey Pink", "Pink Aurora", "Red Scarlet", "Pink Glaze",
                 "Sweet Pink", "Simple White Blue", "Pink Rose", "Blush Petal", "Mocha Cream",
@@ -90,26 +82,31 @@ public class ExploreActivity extends AppCompatActivity {
                 "80.000", "80.000", "80.000", "90.000", "90.000",
                 "85.000", "85.000", "90.000", "95.000"
         };
-
+        fullList.clear();
         for (int i = 1; i <= 24; i++) {
             int resId = getResources().getIdentifier("nail" + i, "drawable", getPackageName());
             if (resId != 0) {
-                nailList.add(new NailModel(names[i-1], "Rp " + prices[i-1], resId));
+                fullList.add(new NailModel(names[i-1], "Rp " + prices[i-1], resId));
             } else {
-                // fallback jika gambar tidak ada
-                nailList.add(new NailModel(names[i-1], "Rp " + prices[i-1], R.drawable.nail1));
+                // Fallback jika gambar tidak ada
+                fullList.add(new NailModel(names[i-1], "Rp " + prices[i-1], R.drawable.nail1));
             }
         }
+        nailList.clear();
+        nailList.addAll(fullList);
     }
 
     private void filterProducts(String query) {
-        List<NailModel> filteredList = new ArrayList<>();
-        for (NailModel nail : nailList) {
-            if (nail.getName().toLowerCase().contains(query.toLowerCase())) {
-                filteredList.add(nail);
+        nailList.clear();
+        if (query.isEmpty()) {
+            nailList.addAll(fullList);
+        } else {
+            for (NailModel nail : fullList) {
+                if (nail.getName().toLowerCase().contains(query.toLowerCase())) {
+                    nailList.add(nail);
+                }
             }
         }
-        adapter = new ExploreAdapter(this, filteredList);
-        rvExplore.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
     }
 }

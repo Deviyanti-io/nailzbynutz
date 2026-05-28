@@ -6,11 +6,15 @@ public class ServiceModel {
     private int price;
     private int imageResId;
 
-    public ServiceModel(String name, String description, int price, int imageResId) {
+    public ServiceModel(String name, String description, String price, int imageResId) {
         this.name = name;
         this.description = description;
-        this.price = price;
+        this.price = Integer.parseInt(price);
         this.imageResId = imageResId;
+    }
+
+    public ServiceModel(String basicPedicure, String description, int i, int icNailShape) {
+
     }
 
     public String getName() { return name; }

@@ -27,12 +27,13 @@ public class ManicureActivity extends AppCompatActivity {
         rvServices.setLayoutManager(new LinearLayoutManager(this));
 
         serviceList = new ArrayList<>();
-        serviceList.add(new ServiceModel("Basic Manicure", "Pembersihan kuku, perapian kutikula, pembentukan kuku, dan pijat tangan.", "45.000", R.drawable.ic_nail_shape));
-        serviceList.add(new ServiceModel("Spa Pedicure", "Rendam kaki, scrub, masker kaki, dan perawatan kuku.", "65.000", R.drawable.ic_nail_shape));
-        serviceList.add(new ServiceModel("Gel Polish", "Pewarnaan gel premium tahan lama hingga 4 minggu.", "85.000", R.drawable.gel_polish));
-        serviceList.add(new ServiceModel("Nail Art", "Desain kuku custom sesuai request.", "120.000", R.drawable.ic_nail_accent));
-        serviceList.add(new ServiceModel("Acrylic Extension", "Penyambungan kuku akrilik.", "150.000", R.drawable.ic_nail_shape));
-        serviceList.add(new ServiceModel("Add On 3D", "Aksesori 3D per kuku.", "15.000", R.drawable.ic_addon_charms));
+        // Hanya dua layanan
+        serviceList.add(new ServiceModel("Basic Manicure",
+                "Pembersihan kuku, perapian kutikula, pembentukan kuku, dan pijat tangan relaksasi.",
+                "45.000", R.drawable.ic_nail_shape));
+        serviceList.add(new ServiceModel("Spa Pedicure",
+                "Rendam kaki dengan garam spa, scrub pengangkat sel kulit mati, masker kaki, dan perawatan kuku.",
+                "65.000", R.drawable.ic_nail_shape));
 
         adapter = new ServiceAdapter(serviceList);
         rvServices.setAdapter(adapter);

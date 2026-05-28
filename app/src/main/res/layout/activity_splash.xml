@@ -10,6 +10,12 @@
         android:src="@drawable/bg_splash"
         android:scaleType="centerCrop" />
 
+    <!-- Overlay gelap agar teks tombol terlihat -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btn_get_started"
         android:layout_width="match_parent"
@@ -20,7 +26,7 @@
         android:text="Get Pretty"
         android:textAllCaps="false"
         android:textSize="25sp"
-        android:textColor="@color/lavender_dark"
+        android:textColor="@color/white"
         android:fontFamily="sans-serif-black"
         android:background="@drawable/bg_button_rounded"
         android:elevation="4dp" />

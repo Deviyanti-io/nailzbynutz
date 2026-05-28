@@ -1,12 +1,17 @@
 package com.example.nailzbynutz;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class NailModel {
     private String name;
     private String price;
     private int imageResId;
-    private boolean isFavorite; // status wishlist
+    private boolean isFavorite;
 
-    // Constructor
+    // Global wishlist
+    public static List<NailModel> globalWishlist = new ArrayList<>();
+
     public NailModel(String name, String price, int imageResId) {
         this.name = name;
         this.price = price;
@@ -14,7 +19,6 @@ public class NailModel {
         this.isFavorite = false;
     }
 
-    // Getter & Setter
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     public String getPrice() { return price; }
