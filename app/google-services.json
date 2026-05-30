@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "971796496338",
+    "project_id": "nailzbynutz",
+    "storage_bucket": "nailzbynutz.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:971796496338:android:febc35d05ff0759888920b",
+        "android_client_info": {
+          "package_name": "com.example.nailzbynutz"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtvjynMmOFjWgTzsWLbUoA_s49DyfnTQM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

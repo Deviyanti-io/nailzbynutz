@@ -2,14 +2,18 @@ package com.example.nailzbynutz;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.CalendarView;
 import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+
+// Tambahan import untuk Firebase dan HashMap
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import java.util.HashMap;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
@@ -75,6 +79,10 @@ public class BookingAppointmentActivity extends AppCompatActivity {
         setTimeSlotListener(btnTime15, "15.00");
         setTimeSlotListener(btnTime17, "17.00");
 
+        // 1. Inisialisasi Firebase Database untuk Booking
+        FirebaseDatabase database = FirebaseDatabase.getInstance("https://nailzbynutz-default-rtdb.asia-southeast1.firebasedatabase.app");
+        DatabaseReference bookingsRef = database.getReference("bookings");
+
         btnNextBooking.setOnClickListener(v -> {
             if (selectedDate.isEmpty() || selectedTime.isEmpty()) {
                 Toast.makeText(this, "Pilih tanggal dan waktu!", Toast.LENGTH_SHORT).show();
@@ -98,33 +106,61 @@ public class BookingAppointmentActivity extends AppCompatActivity {
             String timeRange = String.format("%02d.%02d - %02d.%02d", startHour, startMin, endHour, endMin);
             String subtitle = shape + " • " + length + " • " + colorType;
 
-            SharedPreferences prefs = getSharedPreferences("BookingData", MODE_PRIVATE);
-            String existingJson = prefs.getString("bookings_list", "[]");
-            try {
-                JSONArray bookingsArray = new JSONArray(existingJson);
-                JSONObject newBooking = new JSONObject();
-                newBooking.put("date", day);
-                newBooking.put("month", monthName);
-                newBooking.put("title", "Custom Nail");
-                newBooking.put("subtitle", subtitle);
-                newBooking.put("time", timeRange);
-                newBooking.put("artist", "Nut (Top Artist)");
-                newBooking.put("status", "Confirmed");
-                newBooking.put("colorHex", colorHex);
-                bookingsArray.put(newBooking);
-                prefs.edit().putString("bookings_list", bookingsArray.toString()).apply();
+            // 2. Siapkan data yang akan dikirim ke Firebase menggunakan HashMap
+            HashMap<String, Object> firebaseBookingData = new HashMap<>();
+            firebaseBookingData.put("date", selectedDate); // Format lengkap
+            firebaseBookingData.put("time", timeRange);
+            firebaseBookingData.put("artist", "Nut (Top Artist)");
+            firebaseBookingData.put("status", "Confirmed");
 
-                SharedPreferences pointsPref = getSharedPreferences("UserPoints", MODE_PRIVATE);
-                int currentPoints = pointsPref.getInt("total_points", 0);
-                pointsPref.edit().putInt("total_points", currentPoints + 50).apply();
+            // Masukkan juga detail desain kuku agar admin bisa melihatnya
+            firebaseBookingData.put("shape", shape);
+            firebaseBookingData.put("length", length);
+            firebaseBookingData.put("colorType", colorType);
+            firebaseBookingData.put("colorHex", colorHex);
+            firebaseBookingData.put("finish", finish);
+            firebaseBookingData.put("sizeReport", sizeReport);
+            firebaseBookingData.put("notes", notes);
+            firebaseBookingData.put("addons", addonsList);
 
-                Toast.makeText(this, "Booking berhasil! +50 poin", Toast.LENGTH_LONG).show();
-                startActivity(new Intent(this, MainNavigationActivity.class));
-                finish();
-            } catch (Exception e) {
-                e.printStackTrace();
-                Toast.makeText(this, "Gagal menyimpan booking", Toast.LENGTH_SHORT).show();
-            }
+            // 3. Kirim ke Firebase!
+            bookingsRef.push().setValue(firebaseBookingData)
+                    .addOnSuccessListener(aVoid -> {
+                        // JIKA SUKSES MASUK FIREBASE, LANJUT SIMPAN LOKAL
+                        try {
+                            SharedPreferences prefs = getSharedPreferences("BookingData", MODE_PRIVATE);
+                            String existingJson = prefs.getString("bookings_list", "[]");
+
+                            JSONArray bookingsArray = new JSONArray(existingJson);
+                            JSONObject newBooking = new JSONObject();
+                            newBooking.put("date", day);
+                            newBooking.put("month", monthName);
+                            newBooking.put("title", "Custom Nail");
+                            newBooking.put("subtitle", subtitle);
+                            newBooking.put("time", timeRange);
+                            newBooking.put("artist", "Nut (Top Artist)");
+                            newBooking.put("status", "Confirmed");
+                            newBooking.put("colorHex", colorHex);
+                            bookingsArray.put(newBooking);
+
+                            prefs.edit().putString("bookings_list", bookingsArray.toString()).apply();
+
+                            SharedPreferences pointsPref = getSharedPreferences("UserPoints", MODE_PRIVATE);
+                            int currentPoints = pointsPref.getInt("total_points", 0);
+                            pointsPref.edit().putInt("total_points", currentPoints + 50).apply();
+
+                            Toast.makeText(this, "Booking berhasil tersimpan di server! +50 poin", Toast.LENGTH_LONG).show();
+                            startActivity(new Intent(this, MainNavigationActivity.class));
+                            finish();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Toast.makeText(this, "Berhasil masuk server, tapi gagal simpan lokal", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        // JIKA GAGAL MASUK FIREBASE (Koneksi putus, dsb)
+                        Toast.makeText(this, "Gagal booking: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
         });
     }
 
