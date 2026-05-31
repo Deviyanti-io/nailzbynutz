@@ -39,6 +39,12 @@
         <activity android:name=".BookingAppointmentActivity" />
         <activity android:name=".EditProfileActivity" />
         <activity android:name=".SettingActivity" />
+        <activity android:name=".PaymentActivity" android:exported="false" />
+        <activity android:name=".OwnerDashboardActivity" android:exported="false" />
+        <activity android:name=".OwnerManageBookingActivity" android:exported="false" />
+        <activity android:name=".OwnerManageCatalogActivity" android:exported="false" />
+        <activity android:name=".PaymentInfoActivity" android:exported="false" />
+        <activity android:name=".AddEditCatalogActivity" android:exported="false" />
 
     </application>
 </manifest>

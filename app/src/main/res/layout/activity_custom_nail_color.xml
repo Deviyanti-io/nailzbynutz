@@ -5,7 +5,6 @@
     android:layout_height="match_parent"
     android:background="@color/background_primary">
 
-    <!-- Top bar -->
     <RelativeLayout
         android:id="@+id/layout_top_bar"
         android:layout_width="match_parent"
@@ -22,7 +21,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="Custom Nail"
+            android:text="Customize your nails."
             android:textSize="18sp"
             android:textColor="@color/text_primary"
             android:fontFamily="@font/fredoka_bold" />
@@ -42,36 +41,8 @@
             android:orientation="vertical"
             android:paddingBottom="24dp">
 
-            <!-- Stepper -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="24dp">
-                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                    <TextView android:layout_width="24dp" android:layout_height="24dp" android:background="@drawable/bg_circle_color" android:backgroundTint="@color/lavender_dark" android:text="✓" android:textColor="@color/white" android:gravity="center" android:fontFamily="@font/poppins_bold" android:textSize="12sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Shape" android:textColor="@color/lavender_dark" android:textSize="11sp" android:fontFamily="@font/poppins_medium" android:layout_marginTop="4dp"/>
-                </LinearLayout>
-                <View android:layout_width="35dp" android:layout_height="2dp" android:background="@color/lavender_dark" android:layout_marginBottom="14dp"/>
-                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                    <TextView android:layout_width="24dp" android:layout_height="24dp" android:background="@drawable/bg_circle_color" android:backgroundTint="@color/lavender_dark" android:text="2" android:textColor="@color/white" android:gravity="center" android:fontFamily="@font/poppins_bold" android:textSize="12sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Color" android:textColor="@color/lavender_dark" android:textSize="11sp" android:fontFamily="@font/poppins_bold" android:layout_marginTop="4dp"/>
-                </LinearLayout>
-                <View android:layout_width="35dp" android:layout_height="2dp" android:background="@color/divider" android:layout_marginBottom="14dp"/>
-                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                    <TextView android:layout_width="24dp" android:layout_height="24dp" android:background="@drawable/bg_circle_color" android:backgroundTint="@color/divider" android:text="3" android:textColor="@color/text_secondary" android:gravity="center" android:fontFamily="@font/poppins_bold" android:textSize="12sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Details" android:textColor="@color/text_secondary" android:textSize="11sp" android:fontFamily="@font/poppins_medium" android:layout_marginTop="4dp"/>
-                </LinearLayout>
-                <View android:layout_width="35dp" android:layout_height="2dp" android:background="@color/divider" android:layout_marginBottom="14dp"/>
-                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                    <TextView android:layout_width="24dp" android:layout_height="24dp" android:background="@drawable/bg_circle_color" android:backgroundTint="@color/divider" android:text="4" android:textColor="@color/text_secondary" android:gravity="center" android:fontFamily="@font/poppins_bold" android:textSize="12sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Review" android:textColor="@color/text_secondary" android:textSize="11sp" android:fontFamily="@font/poppins_medium" android:layout_marginTop="4dp"/>
-                </LinearLayout>
-            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="10dp"/>
 
-            <!-- Color Type tabs -->
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Color Type" android:textColor="@color/text_primary" android:textSize="15sp" android:fontFamily="@font/poppins_bold" android:layout_marginBottom="12dp"/>
             <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:scrollbars="none" android:layout_marginBottom="16dp">
                 <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal">
@@ -82,18 +53,37 @@
                 </LinearLayout>
             </HorizontalScrollView>
 
-            <!-- Grid warna (dinamis, akan diisi dari Java) -->
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Choose Color" android:textColor="@color/text_primary" android:textSize="15sp" android:fontFamily="@font/poppins_bold" android:layout_marginBottom="12dp"/>
+            <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="12dp">
+                <TextView
+                    android:id="@+id/title_choose_color"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Choose Color"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    android:fontFamily="@font/poppins_bold" />
+
+                <TextView
+                    android:id="@+id/tv_selected_color_info"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignBottom="@id/title_choose_color"
+                    android:text="Belum dipilih"
+                    android:textColor="@color/lavender_dark"
+                    android:textSize="13sp"
+                    android:fontFamily="@font/poppins_medium"/>
+            </RelativeLayout>
+
             <GridLayout
                 android:id="@+id/color_grid"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:columnCount="4"
+                android:columnCount="7"
                 android:alignmentMode="alignMargins"
                 android:useDefaultMargins="true"
                 android:layout_marginBottom="24dp"/>
 
-            <!-- Finish (top coat) -->
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Finish" android:textColor="@color/text_primary" android:textSize="15sp" android:fontFamily="@font/poppins_bold" android:layout_marginBottom="12dp"/>
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:weightSum="4" android:layout_marginBottom="24dp">
                 <LinearLayout android:id="@+id/btn_finish_glossy" android:layout_width="0dp" android:layout_height="80dp" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:layout_marginRight="6dp" android:clickable="true" android:focusable="true" android:background="@drawable/bg_card_rounded">
@@ -114,38 +104,73 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Add-ons -->
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Nail Art Add-ons" android:textColor="@color/text_primary" android:textSize="15sp" android:fontFamily="@font/poppins_bold" android:layout_marginBottom="12dp"/>
             <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:scrollbars="none" android:layout_marginBottom="24dp">
                 <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal">
-                    <LinearLayout android:id="@+id/addon_charms" android:layout_width="85dp" android:layout_height="95dp" android:orientation="vertical" android:gravity="center" android:layout_marginRight="10dp" android:clickable="true" android:focusable="true" android:background="@drawable/bg_card_rounded">
+
+                    <LinearLayout android:layout_width="90dp" android:layout_height="125dp" android:orientation="vertical" android:gravity="center" android:layout_marginEnd="10dp" android:background="@drawable/bg_card_rounded">
                         <ImageView android:layout_width="32dp" android:layout_height="32dp" android:src="@drawable/ic_addon_charms"/>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Charms" android:textColor="@color/text_primary" android:textSize="11sp" android:fontFamily="@font/poppins_medium" android:layout_marginTop="6dp"/>
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center" android:layout_marginTop="6dp">
+                            <TextView android:id="@+id/btn_min_charms" android:layout_width="22dp" android:layout_height="22dp" android:text="-" android:gravity="center" android:background="@drawable/bg_circle_color" android:backgroundTint="@color/divider" android:textColor="@color/text_primary" android:textStyle="bold" android:layout_marginEnd="8dp"/>
+                            <TextView android:id="@+id/tv_qty_charms" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="12sp" android:textStyle="bold" android:textColor="@color/text_primary"/>
+                            <TextView android:id="@+id/btn_add_charms" android:layout_width="22dp" android:layout_height="22dp" android:text="+" android:gravity="center" android:background="@drawable/bg_circle_color" android:backgroundTint="@color/lavender_dark" android:textColor="@color/white" android:textStyle="bold" android:layout_marginStart="8dp"/>
+                        </LinearLayout>
                     </LinearLayout>
-                    <LinearLayout android:id="@+id/addon_pearls" android:layout_width="85dp" android:layout_height="95dp" android:orientation="vertical" android:gravity="center" android:layout_marginRight="10dp" android:clickable="true" android:focusable="true" android:background="@drawable/bg_card_rounded">
+
+                    <LinearLayout android:layout_width="90dp" android:layout_height="125dp" android:orientation="vertical" android:gravity="center" android:layout_marginEnd="10dp" android:background="@drawable/bg_card_rounded">
                         <ImageView android:layout_width="32dp" android:layout_height="32dp" android:src="@drawable/ic_addon_pearls"/>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pearls" android:textColor="@color/text_primary" android:textSize="11sp" android:fontFamily="@font/poppins_medium" android:layout_marginTop="6dp"/>
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center" android:layout_marginTop="6dp">
+                            <TextView android:id="@+id/btn_min_pearls" android:layout_width="22dp" android:layout_height="22dp" android:text="-" android:gravity="center" android:background="@drawable/bg_circle_color" android:backgroundTint="@color/divider" android:textColor="@color/text_primary" android:textStyle="bold" android:layout_marginEnd="8dp"/>
+                            <TextView android:id="@+id/tv_qty_pearls" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="12sp" android:textStyle="bold" android:textColor="@color/text_primary"/>
+                            <TextView android:id="@+id/btn_add_pearls" android:layout_width="22dp" android:layout_height="22dp" android:text="+" android:gravity="center" android:background="@drawable/bg_circle_color" android:backgroundTint="@color/lavender_dark" android:textColor="@color/white" android:textStyle="bold" android:layout_marginStart="8dp"/>
+                        </LinearLayout>
                     </LinearLayout>
-                    <LinearLayout android:id="@+id/addon_rhinestone" android:layout_width="85dp" android:layout_height="95dp" android:orientation="vertical" android:gravity="center" android:layout_marginRight="10dp" android:clickable="true" android:focusable="true" android:background="@drawable/bg_card_rounded">
+
+                    <LinearLayout android:layout_width="90dp" android:layout_height="125dp" android:orientation="vertical" android:gravity="center" android:layout_marginEnd="10dp" android:background="@drawable/bg_card_rounded">
                         <ImageView android:layout_width="32dp" android:layout_height="32dp" android:src="@drawable/ic_addon_rhinestone"/>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Rhinestone" android:textColor="@color/text_primary" android:textSize="11sp" android:fontFamily="@font/poppins_medium" android:layout_marginTop="6dp"/>
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center" android:layout_marginTop="6dp">
+                            <TextView android:id="@+id/btn_min_rhinestone" android:layout_width="22dp" android:layout_height="22dp" android:text="-" android:gravity="center" android:background="@drawable/bg_circle_color" android:backgroundTint="@color/divider" android:textColor="@color/text_primary" android:textStyle="bold" android:layout_marginEnd="8dp"/>
+                            <TextView android:id="@+id/tv_qty_rhinestone" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="12sp" android:textStyle="bold" android:textColor="@color/text_primary"/>
+                            <TextView android:id="@+id/btn_add_rhinestone" android:layout_width="22dp" android:layout_height="22dp" android:text="+" android:gravity="center" android:background="@drawable/bg_circle_color" android:backgroundTint="@color/lavender_dark" android:textColor="@color/white" android:textStyle="bold" android:layout_marginStart="8dp"/>
+                        </LinearLayout>
                     </LinearLayout>
-                    <LinearLayout android:id="@+id/addon_flower" android:layout_width="85dp" android:layout_height="95dp" android:orientation="vertical" android:gravity="center" android:layout_marginRight="10dp" android:clickable="true" android:focusable="true" android:background="@drawable/bg_card_rounded">
+
+                    <LinearLayout android:layout_width="90dp" android:layout_height="125dp" android:orientation="vertical" android:gravity="center" android:layout_marginEnd="10dp" android:background="@drawable/bg_card_rounded">
                         <ImageView android:layout_width="32dp" android:layout_height="32dp" android:src="@drawable/ic_addon_flower"/>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3D Flower" android:textColor="@color/text_primary" android:textSize="11sp" android:fontFamily="@font/poppins_medium" android:layout_marginTop="6dp"/>
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center" android:layout_marginTop="6dp">
+                            <TextView android:id="@+id/btn_min_flower" android:layout_width="22dp" android:layout_height="22dp" android:text="-" android:gravity="center" android:background="@drawable/bg_circle_color" android:backgroundTint="@color/divider" android:textColor="@color/text_primary" android:textStyle="bold" android:layout_marginEnd="8dp"/>
+                            <TextView android:id="@+id/tv_qty_flower" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="12sp" android:textStyle="bold" android:textColor="@color/text_primary"/>
+                            <TextView android:id="@+id/btn_add_flower" android:layout_width="22dp" android:layout_height="22dp" android:text="+" android:gravity="center" android:background="@drawable/bg_circle_color" android:backgroundTint="@color/lavender_dark" android:textColor="@color/white" android:textStyle="bold" android:layout_marginStart="8dp"/>
+                        </LinearLayout>
                     </LinearLayout>
-                    <LinearLayout android:id="@+id/addon_stickers" android:layout_width="85dp" android:layout_height="95dp" android:orientation="vertical" android:gravity="center" android:layout_marginRight="10dp" android:clickable="true" android:focusable="true" android:background="@drawable/bg_card_rounded">
+
+                    <LinearLayout android:layout_width="90dp" android:layout_height="125dp" android:orientation="vertical" android:gravity="center" android:layout_marginEnd="10dp" android:background="@drawable/bg_card_rounded">
                         <ImageView android:layout_width="32dp" android:layout_height="32dp" android:src="@drawable/ic_addon_stickers"/>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Stickers" android:textColor="@color/text_primary" android:textSize="11sp" android:fontFamily="@font/poppins_medium" android:layout_marginTop="6dp"/>
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center" android:layout_marginTop="6dp">
+                            <TextView android:id="@+id/btn_min_stickers" android:layout_width="22dp" android:layout_height="22dp" android:text="-" android:gravity="center" android:background="@drawable/bg_circle_color" android:backgroundTint="@color/divider" android:textColor="@color/text_primary" android:textStyle="bold" android:layout_marginEnd="8dp"/>
+                            <TextView android:id="@+id/tv_qty_stickers" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="12sp" android:textStyle="bold" android:textColor="@color/text_primary"/>
+                            <TextView android:id="@+id/btn_add_stickers" android:layout_width="22dp" android:layout_height="22dp" android:text="+" android:gravity="center" android:background="@drawable/bg_circle_color" android:backgroundTint="@color/lavender_dark" android:textColor="@color/white" android:textStyle="bold" android:layout_marginStart="8dp"/>
+                        </LinearLayout>
                     </LinearLayout>
-                    <LinearLayout android:id="@+id/addon_bow" android:layout_width="85dp" android:layout_height="95dp" android:orientation="vertical" android:gravity="center" android:clickable="true" android:focusable="true" android:background="@drawable/bg_card_rounded">
+
+                    <LinearLayout android:layout_width="90dp" android:layout_height="125dp" android:orientation="vertical" android:gravity="center" android:background="@drawable/bg_card_rounded">
                         <ImageView android:layout_width="32dp" android:layout_height="32dp" android:src="@drawable/ic_addon_bow"/>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Bow" android:textColor="@color/text_primary" android:textSize="11sp" android:fontFamily="@font/poppins_medium" android:layout_marginTop="6dp"/>
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center" android:layout_marginTop="6dp">
+                            <TextView android:id="@+id/btn_min_bow" android:layout_width="22dp" android:layout_height="22dp" android:text="-" android:gravity="center" android:background="@drawable/bg_circle_color" android:backgroundTint="@color/divider" android:textColor="@color/text_primary" android:textStyle="bold" android:layout_marginEnd="8dp"/>
+                            <TextView android:id="@+id/tv_qty_bow" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="12sp" android:textStyle="bold" android:textColor="@color/text_primary"/>
+                            <TextView android:id="@+id/btn_add_bow" android:layout_width="22dp" android:layout_height="22dp" android:text="+" android:gravity="center" android:background="@drawable/bg_circle_color" android:backgroundTint="@color/lavender_dark" android:textColor="@color/white" android:textStyle="bold" android:layout_marginStart="8dp"/>
+                        </LinearLayout>
                     </LinearLayout>
+
                 </LinearLayout>
             </HorizontalScrollView>
 
-            <!-- Upload foto referensi -->
             <LinearLayout android:id="@+id/btn_upload_photo_container"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
@@ -171,7 +196,6 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- Tombol Next Step -->
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btn_next_color"
         android:layout_width="match_parent"

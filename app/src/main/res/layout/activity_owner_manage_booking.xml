@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_primary">
+
+    <!-- Top Bar -->
+    <RelativeLayout
+        android:id="@+id/top_bar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:paddingHorizontal="16dp">
+        <ImageView
+            android:id="@+id/btn_back_manage"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_back"
+            app:tint="@color/text_primary" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Manage Bookings"
+            android:textSize="18sp"
+            android:fontFamily="@font/fredoka_bold"
+            android:textColor="@color/text_primary" />
+
+        <!-- Ikon Filter Kalender -->
+        <ImageView
+            android:id="@+id/btn_filter_date"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_calendar"
+            app:tint="@color/text_primary"
+            android:padding="2dp"/>
+    </RelativeLayout>
+
+    <!-- Tab Status -->
+    <LinearLayout
+        android:id="@+id/tab_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/top_bar"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="12dp">
+
+        <TextView
+            android:id="@+id/tab_upcoming"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Upcoming"
+            android:gravity="center"
+            android:paddingVertical="10dp"
+            android:textColor="@color/white"
+            android:background="@drawable/bg_card_rounded"
+            android:backgroundTint="@color/lavender_dark"
+            android:fontFamily="@font/poppins_bold"
+            android:textSize="13sp"/>
+
+        <TextView
+            android:id="@+id/tab_complete"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Complete"
+            android:gravity="center"
+            android:paddingVertical="10dp"
+            android:textColor="@color/text_secondary"
+            android:fontFamily="@font/poppins_bold"
+            android:textSize="13sp"/>
+
+        <TextView
+            android:id="@+id/tab_cancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Cancel"
+            android:gravity="center"
+            android:paddingVertical="10dp"
+            android:textColor="@color/text_secondary"
+            android:fontFamily="@font/poppins_bold"
+            android:textSize="13sp"/>
+    </LinearLayout>
+
+    <!-- Indikator Filter Aktif -->
+    <TextView
+        android:id="@+id/tv_active_filter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tab_layout"
+        android:paddingHorizontal="20dp"
+        android:paddingBottom="12dp"
+        android:text="📅 Filter: Semua Tanggal"
+        android:textColor="@color/lavender_dark"
+        android:fontFamily="@font/poppins_bold"
+        android:textSize="12sp"
+        android:visibility="gone"/>
+
+    <!-- Kontainer Pesanan -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/tv_active_filter"
+        android:clipToPadding="false"
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="40dp">
+        <LinearLayout
+            android:id="@+id/bookingContainerAdmin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
+</RelativeLayout>

@@ -36,6 +36,15 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
+            // --- LOGIKA KHUSUS AKUN OWNER ---
+            if (username.equals("owner") && password.equals("admin123")) {
+                Toast.makeText(this, "Selamat datang, Owner!", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, OwnerDashboardActivity.class));
+                finish();
+                return; // Hentikan proses agar tidak lanjut ke pengecekan user biasa
+            }
+
+            // --- LOGIKA UNTUK USER BIASA ---
             String savedUser = sharedPref.getString("SAVED_USER", "");
             String savedPass = sharedPref.getString("SAVED_PASS", "");
             String savedEmail = sharedPref.getString("SAVED_EMAIL", "");

@@ -41,36 +41,8 @@
             android:orientation="vertical"
             android:paddingBottom="20dp">
 
-            <!-- Stepper -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="24dp">
-                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                    <TextView android:layout_width="24dp" android:layout_height="24dp" android:background="@drawable/bg_circle_color" android:backgroundTint="@color/lavender_dark" android:text="✓" android:textColor="@color/white" android:gravity="center" android:fontFamily="@font/poppins_bold" android:textSize="12sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Shape" android:textColor="@color/lavender_dark" android:textSize="11sp" android:fontFamily="@font/poppins_medium" android:layout_marginTop="4dp"/>
-                </LinearLayout>
-                <View android:layout_width="30dp" android:layout_height="2dp" android:background="@color/lavender_dark" android:layout_marginBottom="14dp"/>
-                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                    <TextView android:layout_width="24dp" android:layout_height="24dp" android:background="@drawable/bg_circle_color" android:backgroundTint="@color/lavender_dark" android:text="✓" android:textColor="@color/white" android:gravity="center" android:fontFamily="@font/poppins_bold" android:textSize="12sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Color" android:textColor="@color/lavender_dark" android:textSize="11sp" android:fontFamily="@font/poppins_medium" android:layout_marginTop="4dp"/>
-                </LinearLayout>
-                <View android:layout_width="30dp" android:layout_height="2dp" android:background="@color/lavender_dark" android:layout_marginBottom="14dp"/>
-                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                    <TextView android:layout_width="24dp" android:layout_height="24dp" android:background="@drawable/bg_circle_color" android:backgroundTint="@color/lavender_dark" android:text="✓" android:textColor="@color/white" android:gravity="center" android:fontFamily="@font/poppins_bold" android:textSize="12sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Details" android:textColor="@color/lavender_dark" android:textSize="11sp" android:fontFamily="@font/poppins_medium" android:layout_marginTop="4dp"/>
-                </LinearLayout>
-                <View android:layout_width="30dp" android:layout_height="2dp" android:background="@color/lavender_dark" android:layout_marginBottom="14dp"/>
-                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                    <TextView android:layout_width="24dp" android:layout_height="24dp" android:background="@drawable/bg_circle_color" android:backgroundTint="@color/lavender_dark" android:text="4" android:textColor="@color/white" android:gravity="center" android:fontFamily="@font/poppins_bold" android:textSize="12sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Booking" android:textColor="@color/lavender_dark" android:textSize="11sp" android:fontFamily="@font/poppins_bold" android:layout_marginTop="4dp"/>
-                </LinearLayout>
-            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="10dp"/>
 
-            <!-- Calendar -->
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pilih Tanggal" android:fontFamily="@font/poppins_bold" android:textColor="@color/text_primary" android:textSize="15sp" android:layout_marginBottom="12dp"/>
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
@@ -86,7 +58,6 @@
                     android:theme="@style/ThemeOverlay.AppCompat.Light" />
             </androidx.cardview.widget.CardView>
 
-            <!-- Time slots -->
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pilih Waktu" android:fontFamily="@font/poppins_bold" android:textColor="@color/text_primary" android:textSize="15sp" android:layout_marginBottom="12dp"/>
             <LinearLayout
                 android:layout_width="match_parent"
@@ -108,7 +79,6 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- Confirm Button -->
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnNextBooking"
         android:layout_width="match_parent"

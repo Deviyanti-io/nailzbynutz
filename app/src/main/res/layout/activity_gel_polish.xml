@@ -79,298 +79,46 @@
                 android:alignmentMode="alignMargins"
                 android:columnOrderPreserved="false">
 
-                <LinearLayout
-                    android:id="@+id/type_regular"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
-                    android:orientation="vertical"
-                    android:background="@drawable/bg_card_rounded"
-                    android:padding="10dp"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <ImageView
-                        android:layout_width="65dp"
-                        android:layout_height="65dp"
-                        android:src="@drawable/regular_polish"
-                        android:scaleType="centerInside" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Regular"
-                        android:textColor="@color/text_primary"
-                        android:textSize="12sp"
-                        android:fontFamily="@font/poppins_medium" />
+                <LinearLayout android:id="@+id/type_regular" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:layout_margin="4dp" android:orientation="vertical" android:background="@drawable/bg_card_rounded" android:padding="10dp" android:gravity="center" android:clickable="true" android:focusable="true">
+                    <ImageView android:layout_width="65dp" android:layout_height="65dp" android:src="@drawable/regular_polish" android:scaleType="centerInside" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="Regular" android:textColor="@color/text_primary" android:textSize="12sp" android:fontFamily="@font/poppins_medium" />
                 </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/type_gel"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
-                    android:orientation="vertical"
-                    android:background="@drawable/bg_card_rounded"
-                    android:padding="10dp"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <ImageView
-                        android:layout_width="65dp"
-                        android:layout_height="65dp"
-                        android:src="@drawable/gel_polish"
-                        android:scaleType="centerInside" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Gel Polish"
-                        android:textColor="@color/text_primary"
-                        android:textSize="12sp"
-                        android:fontFamily="@font/poppins_medium" />
+                <LinearLayout android:id="@+id/type_gel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:layout_margin="4dp" android:orientation="vertical" android:background="@drawable/bg_card_rounded" android:padding="10dp" android:gravity="center" android:clickable="true" android:focusable="true">
+                    <ImageView android:layout_width="65dp" android:layout_height="65dp" android:src="@drawable/gel_polish" android:scaleType="centerInside" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="Gel Polish" android:textColor="@color/text_primary" android:textSize="12sp" android:fontFamily="@font/poppins_medium" />
                 </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/type_matte"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
-                    android:orientation="vertical"
-                    android:background="@drawable/bg_card_rounded"
-                    android:padding="10dp"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <ImageView
-                        android:layout_width="65dp"
-                        android:layout_height="65dp"
-                        android:src="@drawable/matte_polish"
-                        android:scaleType="centerInside" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Matte"
-                        android:textColor="@color/text_primary"
-                        android:textSize="12sp"
-                        android:fontFamily="@font/poppins_medium" />
+                <LinearLayout android:id="@+id/type_matte" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:layout_margin="4dp" android:orientation="vertical" android:background="@drawable/bg_card_rounded" android:padding="10dp" android:gravity="center" android:clickable="true" android:focusable="true">
+                    <ImageView android:layout_width="65dp" android:layout_height="65dp" android:src="@drawable/matte_polish" android:scaleType="centerInside" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="Matte" android:textColor="@color/text_primary" android:textSize="12sp" android:fontFamily="@font/poppins_medium" />
                 </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/type_chrome"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
-                    android:orientation="vertical"
-                    android:background="@drawable/bg_card_rounded"
-                    android:padding="10dp"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <ImageView
-                        android:layout_width="65dp"
-                        android:layout_height="65dp"
-                        android:src="@drawable/chrome_polish"
-                        android:scaleType="centerInside" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Chrome"
-                        android:textColor="@color/text_primary"
-                        android:textSize="12sp"
-                        android:fontFamily="@font/poppins_medium" />
+                <LinearLayout android:id="@+id/type_chrome" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:layout_margin="4dp" android:orientation="vertical" android:background="@drawable/bg_card_rounded" android:padding="10dp" android:gravity="center" android:clickable="true" android:focusable="true">
+                    <ImageView android:layout_width="65dp" android:layout_height="65dp" android:src="@drawable/chrome_polish" android:scaleType="centerInside" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="Chrome" android:textColor="@color/text_primary" android:textSize="12sp" android:fontFamily="@font/poppins_medium" />
                 </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/type_cateye"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
-                    android:orientation="vertical"
-                    android:background="@drawable/bg_card_rounded"
-                    android:padding="10dp"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <ImageView
-                        android:layout_width="65dp"
-                        android:layout_height="65dp"
-                        android:src="@drawable/cat_eye_polish"
-                        android:scaleType="centerInside" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Cat Eye"
-                        android:textColor="@color/text_primary"
-                        android:textSize="12sp"
-                        android:fontFamily="@font/poppins_medium" />
+                <LinearLayout android:id="@+id/type_cateye" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:layout_margin="4dp" android:orientation="vertical" android:background="@drawable/bg_card_rounded" android:padding="10dp" android:gravity="center" android:clickable="true" android:focusable="true">
+                    <ImageView android:layout_width="65dp" android:layout_height="65dp" android:src="@drawable/cat_eye_polish" android:scaleType="centerInside" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="Cat Eye" android:textColor="@color/text_primary" android:textSize="12sp" android:fontFamily="@font/poppins_medium" />
                 </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/type_glitter"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
-                    android:orientation="vertical"
-                    android:background="@drawable/bg_card_rounded"
-                    android:padding="10dp"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <ImageView
-                        android:layout_width="65dp"
-                        android:layout_height="65dp"
-                        android:src="@drawable/glitter_polish"
-                        android:scaleType="centerInside" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Glitter"
-                        android:textColor="@color/text_primary"
-                        android:textSize="12sp"
-                        android:fontFamily="@font/poppins_medium" />
+                <LinearLayout android:id="@+id/type_glitter" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:layout_margin="4dp" android:orientation="vertical" android:background="@drawable/bg_card_rounded" android:padding="10dp" android:gravity="center" android:clickable="true" android:focusable="true">
+                    <ImageView android:layout_width="65dp" android:layout_height="65dp" android:src="@drawable/glitter_polish" android:scaleType="centerInside" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="Glitter" android:textColor="@color/text_primary" android:textSize="12sp" android:fontFamily="@font/poppins_medium" />
                 </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/type_jelly"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
-                    android:orientation="vertical"
-                    android:background="@drawable/bg_card_rounded"
-                    android:padding="10dp"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <ImageView
-                        android:layout_width="65dp"
-                        android:layout_height="65dp"
-                        android:src="@drawable/jelly_polish"
-                        android:scaleType="centerInside" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Jelly"
-                        android:textColor="@color/text_primary"
-                        android:textSize="12sp"
-                        android:fontFamily="@font/poppins_medium" />
+                <LinearLayout android:id="@+id/type_jelly" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:layout_margin="4dp" android:orientation="vertical" android:background="@drawable/bg_card_rounded" android:padding="10dp" android:gravity="center" android:clickable="true" android:focusable="true">
+                    <ImageView android:layout_width="65dp" android:layout_height="65dp" android:src="@drawable/jelly_polish" android:scaleType="centerInside" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="Jelly" android:textColor="@color/text_primary" android:textSize="12sp" android:fontFamily="@font/poppins_medium" />
                 </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/type_magnetic"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
-                    android:orientation="vertical"
-                    android:background="@drawable/bg_card_rounded"
-                    android:padding="10dp"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <ImageView
-                        android:layout_width="65dp"
-                        android:layout_height="65dp"
-                        android:src="@drawable/magnetic_polish"
-                        android:scaleType="centerInside" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Magnetic"
-                        android:textColor="@color/text_primary"
-                        android:textSize="12sp"
-                        android:fontFamily="@font/poppins_medium" />
+                <LinearLayout android:id="@+id/type_magnetic" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:layout_margin="4dp" android:orientation="vertical" android:background="@drawable/bg_card_rounded" android:padding="10dp" android:gravity="center" android:clickable="true" android:focusable="true">
+                    <ImageView android:layout_width="65dp" android:layout_height="65dp" android:src="@drawable/magnetic_polish" android:scaleType="centerInside" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="Magnetic" android:textColor="@color/text_primary" android:textSize="12sp" android:fontFamily="@font/poppins_medium" />
                 </LinearLayout>
-
             </GridLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Pilih Lapisan Akhir (Top Coat Finish)"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:fontFamily="@font/poppins_medium"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="12dp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="2">
-
-                <LinearLayout
-                    android:id="@+id/finish_matte"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="6dp"
-                    android:orientation="vertical"
-                    android:background="@drawable/bg_card_rounded"
-                    android:padding="12dp"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <ImageView
-                        android:layout_width="75dp"
-                        android:layout_height="75dp"
-                        android:src="@drawable/matte_top_coat"
-                        android:scaleType="centerInside" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Matte Top Coat"
-                        android:textColor="@color/text_primary"
-                        android:textSize="13sp"
-                        android:fontFamily="@font/poppins_medium"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/finish_glossy"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="6dp"
-                    android:orientation="vertical"
-                    android:background="@drawable/bg_card_rounded"
-                    android:padding="12dp"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <ImageView
-                        android:layout_width="75dp"
-                        android:layout_height="75dp"
-                        android:src="@drawable/glossy_top_coat"
-                        android:scaleType="centerInside" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Glossy Top Coat"
-                        android:textColor="@color/text_primary"
-                        android:textSize="13sp"
-                        android:fontFamily="@font/poppins_medium"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>

@@ -2,109 +2,117 @@ package com.example.nailzbynutz;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatButton;
+import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Locale;
 
 public class CustomNailReviewActivity extends AppCompatActivity {
-
-    private TextView tvShape, tvLength, tvColor, tvFinish, tvAddons, tvSize, tvNotes;
-    private View viewColorPreview;
-    private AppCompatButton btnToBooking;
-    private TextView tvImageNote;
-
-    private String shape, length, colorType, colorHex, finish, sizeReport, notes, uploadedImage;
-    private ArrayList<String> addonsList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom_nail_review);
 
-        // Get data from previous activity (CustomNailDetailsActivity)
-        Intent incoming = getIntent();
-        shape = incoming.getStringExtra("SHAPE_DATA");
-        length = incoming.getStringExtra("LENGTH_DATA");
-        colorType = incoming.getStringExtra("COLOR_TYPE_DATA");
-        colorHex = incoming.getStringExtra("COLOR_HEX_DATA");
-        finish = incoming.getStringExtra("FINISH_DATA");
-        sizeReport = incoming.getStringExtra("SIZE_REPORT");
-        notes = incoming.getStringExtra("SPECIAL_NOTES");
-        uploadedImage = incoming.getStringExtra("UPLOADED_IMAGE");
-        addonsList = incoming.getStringArrayListExtra("ADDONS_DATA");
-
-        // Default values if null
-        if (shape == null) shape = "Almond";
-        if (length == null) length = "Medium";
-        if (colorType == null) colorType = "Solid";
-        if (colorHex == null) colorHex = "#D6001C";
-        if (finish == null) finish = "Glossy";
-        if (sizeReport == null) sizeReport = "M (16-12-13-12-10mm)";
-        if (notes == null) notes = "";
-        if (addonsList == null) addonsList = new ArrayList<>();
-
-        // Initialize views
-        tvShape = findViewById(R.id.tv_review_shape);
-        tvLength = findViewById(R.id.tv_review_length);
-        tvColor = findViewById(R.id.tv_review_color);
-        tvFinish = findViewById(R.id.tv_review_finish);
-        tvAddons = findViewById(R.id.tv_review_addons);
-        tvSize = findViewById(R.id.tv_review_size);
-        tvNotes = findViewById(R.id.tv_review_notes);
-        viewColorPreview = findViewById(R.id.view_review_color_preview);
-        btnToBooking = findViewById(R.id.btn_to_booking);
-        tvImageNote = findViewById(R.id.tv_image_note);
-
-        // Set values
-        tvShape.setText(shape);
-        tvLength.setText(length);
-        tvFinish.setText(finish);
-        tvSize.setText(sizeReport);
-        tvNotes.setText(notes.isEmpty() ? "Tidak ada catatan tambahan" : notes);
-        tvColor.setText(colorType + " (" + colorHex + ")");
-
-        try {
-            viewColorPreview.setBackgroundColor(Color.parseColor(colorHex));
-        } catch (Exception e) {
-            viewColorPreview.setBackgroundColor(getColor(R.color.lavender_dark));
-        }
-
-        // Add-ons
-        if (!addonsList.isEmpty()) {
-            StringBuilder sb = new StringBuilder();
-            for (String addon : addonsList) {
-                sb.append(addon).append(", ");
-            }
-            String addonsText = sb.substring(0, sb.length() - 2);
-            tvAddons.setText(addonsText);
-        } else {
-            tvAddons.setText("Tanpa aksesoris tambahan");
-        }
-
-        // Uploaded image note
-        if (uploadedImage != null && !uploadedImage.isEmpty()) {
-            tvImageNote.setVisibility(View.VISIBLE);
-        }
-
-        // Back button (from top bar)
         findViewById(R.id.btn_back_review).setOnClickListener(v -> finish());
+        Button btnToBooking = findViewById(R.id.btn_to_booking);
 
-        // Proceed to booking
+        Intent intent = getIntent();
+        String shape = intent.getStringExtra("SHAPE_DATA");
+        String length = intent.getStringExtra("LENGTH_DATA");
+        String colorType = intent.getStringExtra("COLOR_TYPE_DATA");
+        String colorHex = intent.getStringExtra("COLOR_HEX_DATA");
+        String colorName = intent.getStringExtra("COLOR_NAME_DATA");
+        String finishCoat = intent.getStringExtra("FINISH_DATA");
+        String size = intent.getStringExtra("SIZE_DATA");
+        String notes = intent.getStringExtra("NOTES_DATA");
+        String uploadedImage = intent.getStringExtra("UPLOADED_IMAGE_DATA");
+        ArrayList<String> addons = intent.getStringArrayListExtra("ADDONS_DATA");
+
+        String serviceType = intent.getStringExtra("SERVICE_TYPE");
+        if (serviceType == null) serviceType = "Custom Nails";
+        HashMap<String, Integer> addonCounts = (HashMap<String, Integer>) intent.getSerializableExtra("ADDON_COUNTS_DATA");
+
+        TextView tvShape = findViewById(R.id.tv_review_shape);
+        TextView tvLength = findViewById(R.id.tv_review_length);
+        TextView tvColor = findViewById(R.id.tv_review_color);
+        View colorPreview = findViewById(R.id.view_review_color_preview);
+        TextView tvFinish = findViewById(R.id.tv_review_finish);
+        TextView tvAddons = findViewById(R.id.tv_review_addons);
+        TextView tvSize = findViewById(R.id.tv_review_size);
+        TextView tvNotes = findViewById(R.id.tv_review_notes);
+        ImageView ivReviewImage = findViewById(R.id.iv_review_image);
+        TextView tvImageTitle = findViewById(R.id.tv_image_title);
+        TextView tvGrandTotal = findViewById(R.id.tv_review_grand_total);
+
+        // KALKULASI HARGA
+        int basePrice = serviceType.equals("Gel Nails") ? 60000 : (serviceType.equals("Manicure") ? 45000 : 80000);
+        int addonPrice = 0;
+
+        if (addons != null && !addons.isEmpty()) {
+            StringBuilder addonsText = new StringBuilder();
+            for (String addon : addons) {
+                int qty = (addonCounts != null && addonCounts.containsKey(addon)) ? addonCounts.get(addon) : 1;
+                addonsText.append("- ").append(addon).append(" (x").append(qty).append(")\n");
+                if (qty > 0) addonPrice += addon.equals("Stickers") ? (1000 * qty) : (2000 * qty);
+            }
+            tvAddons.setText(addonsText.toString().trim());
+        } else {
+            tvAddons.setText("Tidak ada Add-on");
+        }
+
+        int grandTotal = basePrice + addonPrice;
+
+        tvShape.setText(shape != null ? shape : "-");
+        tvLength.setText(length != null ? length : "-");
+
+        if (colorHex != null && colorName != null) {
+            tvColor.setText(colorType + " - " + colorName + " (" + colorHex + ")");
+        } else if (colorHex != null) {
+            tvColor.setText(colorType + " (" + colorHex + ")");
+        } else {
+            tvColor.setText("-");
+        }
+
+        tvFinish.setText(finishCoat != null ? finishCoat : "-");
+        tvSize.setText(size != null ? size : "-");
+        tvNotes.setText((notes != null && !notes.isEmpty()) ? notes : "Tidak ada catatan khusus");
+
+        if (colorHex != null) {
+            GradientDrawable gd = new GradientDrawable();
+            gd.setShape(GradientDrawable.OVAL);
+            gd.setColor(Color.parseColor(colorHex));
+            colorPreview.setBackground(gd);
+        }
+
+        // Tampilkan Gambar
+        if (uploadedImage != null && !uploadedImage.isEmpty()) {
+            tvImageTitle.setVisibility(View.VISIBLE);
+            ivReviewImage.setVisibility(View.VISIBLE);
+            ivReviewImage.setImageURI(Uri.parse(uploadedImage));
+        }
+
+        Locale localeID = new Locale("in", "ID");
+        tvGrandTotal.setText(NumberFormat.getCurrencyInstance(localeID).format(grandTotal));
+
+        int finalAddonPrice = addonPrice;
         btnToBooking.setOnClickListener(v -> {
-            Intent intent = new Intent(CustomNailReviewActivity.this, BookingAppointmentActivity.class);
-            intent.putExtra("FINAL_SHAPE", shape);
-            intent.putExtra("FINAL_LENGTH", length);
-            intent.putExtra("FINAL_COLOR_TYPE", colorType);
-            intent.putExtra("FINAL_COLOR", colorHex);
-            intent.putExtra("FINAL_FINISH", finish);
-            intent.putExtra("FINAL_SIZE", sizeReport);
-            intent.putExtra("FINAL_NOTES", notes);
-            intent.putExtra("FINAL_IMAGE", uploadedImage);
-            intent.putStringArrayListExtra("FINAL_ADDONS", addonsList);
-            startActivity(intent);
+            Intent nextIntent = new Intent(CustomNailReviewActivity.this, BookingAppointmentActivity.class);
+            if (getIntent().getExtras() != null) {
+                nextIntent.putExtras(getIntent().getExtras());
+            }
+            nextIntent.putExtra("BASE_PRICE", basePrice);
+            nextIntent.putExtra("ADDON_PRICE", finalAddonPrice);
+            nextIntent.putExtra("GRAND_TOTAL", grandTotal);
+            startActivity(nextIntent);
         });
     }
 }

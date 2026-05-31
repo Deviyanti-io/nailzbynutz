@@ -134,7 +134,7 @@
                 android:background="@drawable/bg_card_rounded">
 
                 <LinearLayout
-                    android:id="@+id/menu_edit"
+                    android:id="@+id/menu_payment_info"
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
                     android:orientation="horizontal"
@@ -147,7 +147,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Edit Profil"
+                        android:text="My Payment Info"
                         android:textColor="@color/text_primary"
                         android:textSize="15sp"
                         android:fontFamily="@font/poppins_medium" />
