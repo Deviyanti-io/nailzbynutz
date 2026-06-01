@@ -38,4 +38,5 @@
     <item name="card_gel_polish" type="id" />
     <item name="card_custom_nails" type="id" />
     <item name="rv_history" type="id" />
+    <item name="bookingContainer" type="id" />
 </resources>

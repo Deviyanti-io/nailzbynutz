@@ -195,7 +195,6 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
         }
     }
 
-    // PERHATIKAN: Ada tambahan parameter 'categoryKey' di bawah ini
     private void addAdminBookingCard(DataSnapshot data, String status, String date, String categoryKey) {
         try {
             String bookingId = data.getKey();
@@ -210,6 +209,11 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
 
             String serviceType = String.valueOf(data.child("serviceType").getValue());
             if (serviceType.equals("null") || serviceType.isEmpty()) serviceType = categoryKey.replace("_", " ");
+
+            // AMBIL DATA GRAND TOTAL DARI FIREBASE
+            Integer grandTotal = data.child("grandTotal").getValue(Integer.class);
+            if (grandTotal == null) grandTotal = 0;
+            String hargaFormatted = "Rp " + String.format("%,d", grandTotal).replace(',', '.');
 
             String paymentProof = data.hasChild("paymentProof") ? String.valueOf(data.child("paymentProof").getValue()) : "";
             String referenceImage = data.hasChild("referenceImage") ? String.valueOf(data.child("referenceImage").getValue()) : "";
@@ -241,6 +245,15 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
             tvInfo.setTypeface(poppinsMedium);
             tvInfo.setTextSize(13);
             mainLayout.addView(tvInfo);
+
+            // MENAMPILKAN TOTAL BIAYA (GRAND TOTAL)
+            TextView tvPrice = new TextView(this);
+            tvPrice.setText("Total Tagihan: " + hargaFormatted);
+            tvPrice.setTextColor(Color.parseColor("#4CAF50")); // Warna Hijau
+            tvPrice.setTypeface(poppinsBold);
+            tvPrice.setTextSize(14);
+            tvPrice.setPadding(0, 4, 0, 12);
+            mainLayout.addView(tvPrice);
 
             LinearLayout statusRow = new LinearLayout(this);
             statusRow.setOrientation(LinearLayout.HORIZONTAL);
@@ -375,7 +388,6 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
                 btnTerima.setBackgroundResource(R.drawable.bg_button_rounded);
 
                 btnTerima.setOnClickListener(v -> {
-                    // PENTING: Update berdasarkan folder kategori
                     bookingsRef.child(categoryKey).child(bookingId).child("paymentStatus").setValue("Lunas");
                     Toast.makeText(this, "Pembayaran Lunas!", Toast.LENGTH_SHORT).show();
                 });
@@ -401,7 +413,6 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
 
                 String finalCustomerName = customerName;
                 btnComplete.setOnClickListener(v -> {
-                    // PENTING: Panggil method update dengan folder kategori
                     updateBookingStatus(bookingId, categoryKey, "Completed");
                     bookingsRef.child(categoryKey).child(bookingId).child("paymentStatus").setValue("Lunas");
 
@@ -473,7 +484,6 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
         builder.setTitle(title).setView(iv).setPositiveButton("Tutup", null).show();
     }
 
-    // PENTING: Method ini sekarang butuh categoryKey!
     private void updateBookingStatus(String bookingId, String categoryKey, String newStatus) {
         new AlertDialog.Builder(this)
                 .setTitle("Konfirmasi")

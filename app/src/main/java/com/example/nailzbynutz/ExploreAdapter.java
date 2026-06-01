@@ -37,50 +37,57 @@ public class ExploreAdapter extends RecyclerView.Adapter<ExploreAdapter.ViewHold
         holder.tvPrice.setText(nail.getPrice());
         holder.ivImage.setImageResource(nail.getImageResId());
 
-        // Update icon jantung
-        if (nail.isFavorite()) {
+        // Membaca status Wishlist langsung dari memori lokal (SharedPreferences)
+        SharedPreferences localWishlist = context.getSharedPreferences("LocalWishlist", Context.MODE_PRIVATE);
+        String safeId = nail.getName().replace(" ", "_");
+        boolean isLikedLocally = localWishlist.getBoolean(safeId, false);
+
+        nail.setFavorite(isLikedLocally);
+
+        if (isLikedLocally) {
             holder.ivHeart.setImageResource(R.drawable.ic_heart_on);
         } else {
             holder.ivHeart.setImageResource(R.drawable.ic_heart_off);
         }
 
-        // Klik item (gambar) -> ke CustomNailShapeActivity
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, CustomNailShapeActivity.class);
             intent.putExtra("PRODUCT_NAME", nail.getName());
             context.startActivity(intent);
         });
 
-        // Klik jantung -> toggle wishlist MENGGUNAKAN SHAREDPREFERENCES
         holder.ivHeart.setOnClickListener(v -> {
             try {
                 boolean currentStatus = nail.isFavorite();
-                nail.setFavorite(!currentStatus);
+                boolean newStatus = !currentStatus;
+                nail.setFavorite(newStatus);
 
-                SharedPreferences localWishlist = context.getSharedPreferences("LocalWishlist", Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor = localWishlist.edit();
-                String safeId = nail.getName().replace(" ", "_");
 
-                if (!currentStatus) {
-                    // Tambah ke memori lokal
+                if (newStatus) {
                     editor.putBoolean(safeId, true);
                     editor.putString(safeId + "_name", nail.getName());
-                    editor.putString(safeId + "_price", nail.getPrice());
+
+                    // Mengekstrak angka saja dari harga untuk menghindari error NumberFormat di WishlistAdapter
+                    String cleanPrice = nail.getPrice().replaceAll("[^0-9]", "");
+                    if(cleanPrice.isEmpty()) cleanPrice = "0";
+
+                    editor.putString(safeId + "_price", cleanPrice);
                     editor.putString(safeId + "_image", "res_" + nail.getImageResId());
                     editor.putBoolean(safeId + "_isLocal", true);
+
                     Toast.makeText(context, nail.getName() + " ditambahkan ke Wishlist ❤️", Toast.LENGTH_SHORT).show();
                 } else {
-                    // Hapus dari memori lokal
                     editor.remove(safeId);
                     editor.remove(safeId + "_name");
                     editor.remove(safeId + "_price");
                     editor.remove(safeId + "_image");
                     editor.remove(safeId + "_isLocal");
+
                     Toast.makeText(context, nail.getName() + " dihapus dari Wishlist", Toast.LENGTH_SHORT).show();
                 }
                 editor.apply();
                 notifyItemChanged(position);
-
             } catch (Exception e) {
                 e.printStackTrace();
                 Toast.makeText(context, "Terjadi kesalahan", Toast.LENGTH_SHORT).show();
