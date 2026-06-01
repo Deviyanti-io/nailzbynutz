@@ -3,11 +3,11 @@ package com.example.nailzbynutz;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.database.DataSnapshot;
@@ -20,13 +20,12 @@ public class ProfileActivity extends AppCompatActivity {
 
     private TextView tvName;
     private TextView tvEmail;
-    private TextView tvPoints;
     private TextView tvMemberStatus;
+    private TextView tvMemberPoints;
 
-    private View memberCard;
+    private CardView memberCard;
 
     private DatabaseReference userRef;
-
     private String currentUsername;
 
     @Override
@@ -34,196 +33,144 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
+        // Header
+        findViewById(R.id.btn_back_profile).setOnClickListener(v -> finish());
+
+        // Profile
         tvName = findViewById(R.id.tv_profile_name);
         tvEmail = findViewById(R.id.tv_profile_email);
 
-        tvPoints = findViewById(R.id.tv_member_points);
+        // Member Card
         tvMemberStatus = findViewById(R.id.tv_member_status);
-
+        tvMemberPoints = findViewById(R.id.tv_member_points);
         memberCard = findViewById(R.id.member_card);
 
-        SharedPreferences session =
-                getSharedPreferences("UserSession", MODE_PRIVATE);
+        SharedPreferences session = getSharedPreferences("UserSession", MODE_PRIVATE);
 
-        currentUsername =
-                session.getString("USER_NAME", "Guest");
+        currentUsername = session.getString("USER_NAME", "Guest");
 
-        String currentEmail =
-                session.getString("USER_EMAIL", "");
+        String currentEmail = session.getString("USER_EMAIL", "");
 
         tvName.setText(currentUsername);
         tvEmail.setText(currentEmail);
 
-        userRef = FirebaseDatabase
-                .getInstance("https://nailzbynutz-default-rtdb.asia-southeast1.firebasedatabase.app")
-                .getReference("users")
-                .child(currentUsername);
+        userRef = FirebaseDatabase.getInstance("https://nailzbynutz-default-rtdb.asia-southeast1.firebasedatabase.app").getReference("users").child(currentUsername);
 
-        setupMenuButtons();
-
+        setupMenu();
         setupBottomNavigation();
-
-        loadRealtimeProfileData();
-
-        View btnBack = findViewById(R.id.btn_back_profile);
-
-        if (btnBack != null) {
-            btnBack.setOnClickListener(v -> finish());
-        }
-    }
-
-    private void setupMenuButtons() {
-
-        findViewById(R.id.btn_edit_profile)
-                .setOnClickListener(v ->
-                        startActivity(
-                                new Intent(
-                                        ProfileActivity.this,
-                                        EditProfileActivity.class)));
-
-        findViewById(R.id.menu_payment_info)
-                .setOnClickListener(v ->
-                        startActivity(
-                                new Intent(
-                                        ProfileActivity.this,
-                                        PaymentInfoActivity.class)));
-
-        findViewById(R.id.menu_wishlist)
-                .setOnClickListener(v ->
-                        startActivity(
-                                new Intent(
-                                        ProfileActivity.this,
-                                        WishlistActivity.class)));
-
-        findViewById(R.id.menu_bookings)
-                .setOnClickListener(v ->
-                        startActivity(
-                                new Intent(
-                                        ProfileActivity.this,
-                                        HistoryActivity.class)));
-
-        findViewById(R.id.menu_settings)
-                .setOnClickListener(v ->
-                        startActivity(
-                                new Intent(
-                                        ProfileActivity.this,
-                                        SettingActivity.class)));
-
-        findViewById(R.id.menu_logout)
-                .setOnClickListener(v -> {
-
-                    SharedPreferences session =
-                            getSharedPreferences(
-                                    "UserSession",
-                                    MODE_PRIVATE);
-
-                    session.edit().clear().apply();
-
-                    Intent intent =
-                            new Intent(
-                                    ProfileActivity.this,
-                                    LoginActivity.class);
-
-                    intent.setFlags(
-                            Intent.FLAG_ACTIVITY_NEW_TASK
-                                    | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
-                    startActivity(intent);
-                    finish();
-                });
-    }
-
-    private void loadRealtimeProfileData() {
-
-        userRef.addValueEventListener(
-                new ValueEventListener() {
-
-                    @Override
-                    public void onDataChange(
-                            @NonNull DataSnapshot snapshot) {
-
-                        if (!snapshot.exists()) {
-                            return;
-                        }
-
-                        String email =
-                                snapshot.child("email")
-                                        .getValue(String.class);
-
-                        if (email != null) {
-                            tvEmail.setText(email);
-                        }
-
-                        int points = 0;
-
-                        try {
-
-                            Object value =
-                                    snapshot.child("points")
-                                            .getValue();
-
-                            if (value != null) {
-                                points = Integer.parseInt(
-                                        value.toString());
-                            }
-
-                        } catch (Exception ignored) {
-                        }
-
-                        tvPoints.setText(points + " pts");
-
-                        updateMemberTier(points);
-                    }
-
-                    @Override
-                    public void onCancelled(
-                            @NonNull DatabaseError error) {
-                    }
-                });
-    }
-
-    private void updateMemberTier(int points) {
-
-        if (points >= 500) {
-
-            tvMemberStatus.setText("Platinum Member");
-
-            memberCard.setBackgroundResource(
-                    R.drawable.bg_member_platinum);
-
-        } else if (points >= 300) {
-
-            tvMemberStatus.setText("Gold Member");
-
-            memberCard.setBackgroundResource(
-                    R.drawable.bg_member_gold);
-
-        } else if (points >= 150) {
-
-            tvMemberStatus.setText("Silver Member");
-
-            memberCard.setBackgroundResource(
-                    R.drawable.bg_member_silver);
-
-        } else {
-
-            tvMemberStatus.setText("Bronze Member");
-
-            memberCard.setBackgroundResource(
-                    R.drawable.bg_card_rounded);
-        }
+        loadProfileData();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        loadRealtimeProfileData();
+        loadProfileData();
+    }
+
+    private void loadProfileData() {
+
+        userRef.addValueEventListener(new ValueEventListener() {
+
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                if (!snapshot.exists()) {
+                    return;
+                }
+
+                String email = snapshot.child("email").getValue(String.class);
+
+                if (email != null) {tvEmail.setText(email);
+                }
+
+                int points = 0;
+
+                try {
+
+                    Object pointObj = snapshot.child("points").getValue();
+
+                    if (pointObj != null) {
+                        points = Integer.parseInt(pointObj.toString());
+                    }
+
+                } catch (Exception ignored) {
+                }
+
+                tvMemberPoints.setText(points + " pts");
+
+                if (points >= 500) {
+
+                    tvMemberStatus.setText("Platinum Member");
+
+                    memberCard.setCardBackgroundColor(
+                            getResources().getColor(R.color.platinum)
+                    );
+
+                } else if (points >= 300) {
+
+                    tvMemberStatus.setText("Gold Member");
+
+                    memberCard.setCardBackgroundColor(
+                            getResources().getColor(R.color.gold_member)
+                    );
+
+                } else if (points >= 150) {
+
+                    tvMemberStatus.setText("Silver Member");
+
+                    memberCard.setCardBackgroundColor(
+                            getResources().getColor(R.color.silver)
+                    );
+
+                } else {
+
+                    tvMemberStatus.setText("Bronze Member");
+
+                    memberCard.setCardBackgroundColor(
+                            getResources().getColor(R.color.bronze)
+                    );
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+    private void setupMenu() {
+
+        // Edit Profile
+        findViewById(R.id.btn_edit_profile).setOnClickListener(v -> startActivity(new Intent(this, EditProfileActivity.class)));
+
+        // Wishlist
+        findViewById(R.id.menu_wishlist).setOnClickListener(v -> startActivity(new Intent(this, WishlistActivity.class)));
+
+        // Booking History
+        findViewById(R.id.menu_bookings).setOnClickListener(v -> startActivity(new Intent(this, HistoryActivity.class)));
+
+        // Payment Info
+        findViewById(R.id.menu_payment_info).setOnClickListener(v -> startActivity(new Intent(this, PaymentInfoActivity.class)));
+
+        // Settings
+        findViewById(R.id.menu_settings).setOnClickListener(v -> startActivity(new Intent(this, SettingActivity.class)));
+
+        // Logout
+        findViewById(R.id.menu_logout).setOnClickListener(v -> {SharedPreferences session = getSharedPreferences("UserSession", MODE_PRIVATE);
+            session.edit().clear().apply();
+
+            Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
+
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+            startActivity(intent);finish();
+        });
     }
 
     private void setupBottomNavigation() {
 
-        BottomNavigationView bottomNav =
-                findViewById(R.id.bottom_navigation);
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
 
         if (bottomNav == null) return;
 
@@ -235,10 +182,7 @@ public class ProfileActivity extends AppCompatActivity {
 
             if (id == R.id.nav_home) {
 
-                startActivity(
-                        new Intent(
-                                this,
-                                MainNavigationActivity.class));
+                startActivity(new Intent(this, MainNavigationActivity.class));
 
                 finish();
                 return true;
@@ -246,10 +190,7 @@ public class ProfileActivity extends AppCompatActivity {
 
             if (id == R.id.nav_explore) {
 
-                startActivity(
-                        new Intent(
-                                this,
-                                ExploreActivity.class));
+                startActivity(new Intent(this, ExploreActivity.class));
 
                 finish();
                 return true;
@@ -257,20 +198,13 @@ public class ProfileActivity extends AppCompatActivity {
 
             if (id == R.id.nav_history) {
 
-                startActivity(
-                        new Intent(
-                                this,
-                                HistoryActivity.class));
+                startActivity(new Intent(this, HistoryActivity.class));
 
                 finish();
                 return true;
             }
 
-            if (id == R.id.nav_profile) {
-                return true;
-            }
-
-            return false;
+            return id == R.id.nav_profile;
         });
     }
 }
