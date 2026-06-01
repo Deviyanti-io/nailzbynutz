@@ -1,8 +1,8 @@
 package com.example.nailzbynutz;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -15,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -33,13 +34,10 @@ public class ExploreActivity extends AppCompatActivity {
     private ExploreAdapter adapter;
     private ArrayList<OwnerManageCatalogActivity.CatalogItem> exploreList;
     private ArrayList<OwnerManageCatalogActivity.CatalogItem> filteredList;
-
     private DatabaseReference catalogRef;
-    private DatabaseReference userWishlistRef;
-    private ArrayList<String> likedItemIds = new ArrayList<>();
-
     private EditText etSearch;
     private SharedPreferences localPrefs;
+    private SharedPreferences localWishlist;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,13 +45,10 @@ public class ExploreActivity extends AppCompatActivity {
         setContentView(R.layout.activity_explore);
 
         localPrefs = getSharedPreferences("LocalCatalogPrefs", MODE_PRIVATE);
-
-        SharedPreferences session = getSharedPreferences("UserSession", MODE_PRIVATE);
-        String currentUsername = session.getString("USER_NAME", "Guest");
+        localWishlist = getSharedPreferences("LocalWishlist", MODE_PRIVATE);
 
         FirebaseDatabase database = FirebaseDatabase.getInstance("https://nailzbynutz-default-rtdb.asia-southeast1.firebasedatabase.app");
         catalogRef = database.getReference("catalogs");
-        userWishlistRef = database.getReference("users").child(currentUsername).child("wishlist");
 
         rvExplore = findViewById(R.id.rv_explore);
         rvExplore.setLayoutManager(new GridLayoutManager(this, 2));
@@ -77,42 +72,8 @@ public class ExploreActivity extends AppCompatActivity {
             @Override public void afterTextChanged(Editable s) {}
         });
 
-        loadWishlistData();
         loadCatalogData();
-
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
-        bottomNav.setSelectedItemId(R.id.nav_explore);
-        bottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_home) {
-                startActivity(new Intent(this, MainNavigationActivity.class));
-                overridePendingTransition(0, 0); finish(); return true;
-            } else if (id == R.id.nav_history) {
-                startActivity(new Intent(this, HistoryActivity.class));
-                overridePendingTransition(0, 0); finish(); return true;
-            } else if (id == R.id.nav_profile) {
-                startActivity(new Intent(this, ProfileActivity.class));
-                overridePendingTransition(0, 0); finish(); return true;
-            } else if (id == R.id.nav_explore) {
-                return true;
-            }
-            return false;
-        });
-    }
-
-    private void loadWishlistData() {
-        userWishlistRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                likedItemIds.clear();
-                for (DataSnapshot item : snapshot.getChildren()) {
-                    likedItemIds.add(item.getKey());
-                }
-                adapter.notifyDataSetChanged();
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
-        });
+        setupBottomNavigation();
     }
 
     private void filterSearch(String query) {
@@ -155,7 +116,6 @@ public class ExploreActivity extends AppCompatActivity {
                 for (int i = 0; i < localImages.length; i++) {
                     String id = "local_" + i;
                     if (!localPrefs.getBoolean("deleted_" + id, false)) {
-                        // PERBAIKAN: Menggunakan modulo (%) agar array tidak pernah out of bounds
                         String safeName = localNames[i % localNames.length];
                         String safePrice = localPrices[i % localPrices.length];
                         exploreList.add(new OwnerManageCatalogActivity.CatalogItem(id, safeName, safePrice, "res_" + localImages[i], true));
@@ -173,8 +133,28 @@ public class ExploreActivity extends AppCompatActivity {
 
                 filterSearch(etSearch.getText().toString());
             }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    private void setupBottomNavigation() {
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
+        bottomNav.setSelectedItemId(R.id.nav_explore);
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_home) {
+                startActivity(new Intent(this, MainNavigationActivity.class));
+                overridePendingTransition(0, 0); finish(); return true;
+            } else if (id == R.id.nav_history) {
+                startActivity(new Intent(this, HistoryActivity.class));
+                overridePendingTransition(0, 0); finish(); return true;
+            } else if (id == R.id.nav_profile) {
+                startActivity(new Intent(this, ProfileActivity.class));
+                overridePendingTransition(0, 0); finish(); return true;
+            } else if (id == R.id.nav_explore) {
+                return true;
+            }
+            return false;
         });
     }
 
@@ -212,7 +192,6 @@ public class ExploreActivity extends AppCompatActivity {
                 }
             } else {
                 try {
-                    // PERBAIKAN: Gunakan Glide untuk memuat URL gambar internet agar tidak crash
                     com.bumptech.glide.Glide.with(holder.itemView.getContext())
                             .load(item.imageUrl)
                             .placeholder(android.R.color.darker_gray)
@@ -222,27 +201,37 @@ public class ExploreActivity extends AppCompatActivity {
                 }
             }
 
-            boolean isLiked = likedItemIds.contains(item.id);
+            // MENGGUNAKAN LOCAL WISHLIST YANG SUDAH DIPERBAIKI
+            String safeId = item.name.replace(" ", "_");
+            boolean isLiked = localWishlist.getBoolean(safeId, false);
 
             if (isLiked) {
                 holder.btnLike.setImageResource(R.drawable.ic_heart_on);
-                holder.btnLike.setColorFilter(getColor(R.color.success));
+                holder.btnLike.setColorFilter(android.graphics.Color.parseColor("#FF4081"));
             } else {
                 holder.btnLike.setImageResource(R.drawable.ic_heart_off);
-                holder.btnLike.setColorFilter(getColor(R.color.lavender_dark));
+                holder.btnLike.setColorFilter(ContextCompat.getColor(ExploreActivity.this, R.color.lavender_dark));
             }
 
             holder.btnLike.setOnClickListener(v -> {
+                SharedPreferences.Editor editor = localWishlist.edit();
                 if (isLiked) {
-                    userWishlistRef.child(item.id).removeValue();
+                    editor.remove(safeId);
+                    editor.remove(safeId + "_name");
+                    editor.remove(safeId + "_price");
+                    editor.remove(safeId + "_image");
+                    editor.remove(safeId + "_isLocal");
                     Toast.makeText(ExploreActivity.this, "Dihapus dari Wishlist", Toast.LENGTH_SHORT).show();
                 } else {
-                    userWishlistRef.child(item.id).child("name").setValue(item.name);
-                    userWishlistRef.child(item.id).child("price").setValue(item.price);
-                    userWishlistRef.child(item.id).child("imageUrl").setValue(item.imageUrl);
-                    userWishlistRef.child(item.id).child("isLocal").setValue(item.isLocal);
+                    editor.putBoolean(safeId, true);
+                    editor.putString(safeId + "_name", item.name);
+                    editor.putString(safeId + "_price", item.price);
+                    editor.putString(safeId + "_image", item.imageUrl);
+                    editor.putBoolean(safeId + "_isLocal", item.isLocal);
                     Toast.makeText(ExploreActivity.this, "Ditambahkan ke Wishlist ❤️", Toast.LENGTH_SHORT).show();
                 }
+                editor.apply();
+                notifyItemChanged(position);
             });
 
             holder.itemView.setOnClickListener(v -> {

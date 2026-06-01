@@ -74,20 +74,39 @@ public class BookingAppointmentActivity extends AppCompatActivity {
         timeSlotCounts.put("15.00", 0);
         timeSlotCounts.put("17.00", 0);
 
-        bookingsRef.orderByChild("date").equalTo(targetDate).addListenerForSingleValueEvent(new ValueEventListener() {
+        // PERBAIKAN: Menggunakan addListenerForSingleValueEvent langsung ke root 'bookings'
+        // Lalu kita gunakan Dobel Loop untuk mencari data tanggal yang cocok di dalam laci kategori
+        bookingsRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for (DataSnapshot data : snapshot.getChildren()) {
-                    if ("Confirmed".equals(data.child("status").getValue(String.class))) {
-                        String timeRange = data.child("time").getValue(String.class);
-                        if (timeRange != null) {
-                            String startTime = timeRange.split(" ")[0];
-                            if (timeSlotCounts.containsKey(startTime)) {
-                                timeSlotCounts.put(startTime, timeSlotCounts.get(startTime) + 1);
+
+                // Loop 1: Buka Laci Kategori (Manicure, dsb)
+                for (DataSnapshot categoryFolder : snapshot.getChildren()) {
+
+                    // Loop 2: Buka pesanan di dalamnya
+                    for (DataSnapshot data : categoryFolder.getChildren()) {
+                        try {
+                            String dbDate = data.child("date").getValue(String.class);
+                            String status = data.child("status").getValue(String.class);
+
+                            // Cek apakah tanggalnya sama dan statusnya Confirmed
+                            if (targetDate.equals(dbDate) && "Confirmed".equals(status)) {
+                                String timeRange = data.child("time").getValue(String.class);
+                                if (timeRange != null) {
+                                    String startTime = timeRange.split(" ")[0];
+                                    if (timeSlotCounts.containsKey(startTime)) {
+                                        timeSlotCounts.put(startTime, timeSlotCounts.get(startTime) + 1);
+                                    }
+                                }
                             }
+                        } catch (Exception e) {
+                            // Abaikan jika ada data yang rusak, jangan force close
+                            e.printStackTrace();
                         }
                     }
                 }
+
+                // Update UI tombol setelah semua folder dicek
                 updateButtonQuota(btnTime09, timeSlotCounts.get("09.00"), "09.00");
                 updateButtonQuota(btnTime11, timeSlotCounts.get("11.00"), "11.00");
                 updateButtonQuota(btnTime13, timeSlotCounts.get("13.00"), "13.00");

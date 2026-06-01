@@ -31,4 +31,11 @@
     <item name="btn_my_bookings" type="id" />
     <item name="btn_settings" type="id" />
     <item name="btn_payment_info" type="id" />
+    <item name="tv_price_manicure" type="id" />
+    <item name="tv_price_gel" type="id" />
+    <item name="tv_price_custom" type="id" />
+    <item name="card_manicure" type="id" />
+    <item name="card_gel_polish" type="id" />
+    <item name="card_custom_nails" type="id" />
+    <item name="rv_history" type="id" />
 </resources>

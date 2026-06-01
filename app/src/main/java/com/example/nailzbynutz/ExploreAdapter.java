@@ -2,6 +2,7 @@ package com.example.nailzbynutz;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,24 +51,36 @@ public class ExploreAdapter extends RecyclerView.Adapter<ExploreAdapter.ViewHold
             context.startActivity(intent);
         });
 
-        // Klik jantung -> toggle wishlist (tidak pindah halaman)
+        // Klik jantung -> toggle wishlist MENGGUNAKAN SHAREDPREFERENCES
         holder.ivHeart.setOnClickListener(v -> {
             try {
                 boolean currentStatus = nail.isFavorite();
                 nail.setFavorite(!currentStatus);
 
+                SharedPreferences localWishlist = context.getSharedPreferences("LocalWishlist", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = localWishlist.edit();
+                String safeId = nail.getName().replace(" ", "_");
+
                 if (!currentStatus) {
-                    // Tambah ke wishlist jika belum ada
-                    if (!NailModel.globalWishlist.contains(nail)) {
-                        NailModel.globalWishlist.add(nail);
-                    }
+                    // Tambah ke memori lokal
+                    editor.putBoolean(safeId, true);
+                    editor.putString(safeId + "_name", nail.getName());
+                    editor.putString(safeId + "_price", nail.getPrice());
+                    editor.putString(safeId + "_image", "res_" + nail.getImageResId());
+                    editor.putBoolean(safeId + "_isLocal", true);
                     Toast.makeText(context, nail.getName() + " ditambahkan ke Wishlist ❤️", Toast.LENGTH_SHORT).show();
                 } else {
-                    // Hapus dari wishlist
-                    NailModel.globalWishlist.remove(nail);
+                    // Hapus dari memori lokal
+                    editor.remove(safeId);
+                    editor.remove(safeId + "_name");
+                    editor.remove(safeId + "_price");
+                    editor.remove(safeId + "_image");
+                    editor.remove(safeId + "_isLocal");
                     Toast.makeText(context, nail.getName() + " dihapus dari Wishlist", Toast.LENGTH_SHORT).show();
                 }
+                editor.apply();
                 notifyItemChanged(position);
+
             } catch (Exception e) {
                 e.printStackTrace();
                 Toast.makeText(context, "Terjadi kesalahan", Toast.LENGTH_SHORT).show();

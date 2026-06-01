@@ -91,7 +91,6 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
 
     private void switchTab(TextView activeTab, String targetStatus) {
         try {
-            // Ubah warna teks tab yang tidak aktif menjadi abu-abu kebiruan
             if (tabUpcoming != null) {
                 tabUpcoming.setBackgroundResource(0);
                 tabUpcoming.setBackgroundTintList(null);
@@ -108,7 +107,6 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
                 tabCancel.setTextColor(Color.parseColor("#A0B0C0"));
             }
 
-            // Ubah warna tab aktif menjadi BIRU
             if (activeTab != null) {
                 activeTab.setBackgroundResource(R.drawable.bg_card_rounded);
                 activeTab.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#3F51B5")));
@@ -117,9 +115,7 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
 
             currentTabStatus = targetStatus;
             loadAllBookingsFromFirebase();
-        } catch (Exception e) {
-            Toast.makeText(this, "Error in switchTab: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        }
+        } catch (Exception e) {}
     }
 
     private void showDatePicker() {
@@ -144,18 +140,28 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
                     bookingContainerAdmin.removeAllViews();
                     boolean hasBookings = false;
 
-                    for (DataSnapshot data : snapshot.getChildren()) {
-                        String status = String.valueOf(data.child("status").getValue());
-                        if (status.equals("null")) status = "Confirmed";
+                    // DOBEL LOOP
+                    for (DataSnapshot categoryFolder : snapshot.getChildren()) {
+                        String categoryKey = categoryFolder.getKey(); // NAMA LACI PENTING!
 
-                        String date = String.valueOf(data.child("date").getValue());
-                        if (date.equals("null")) date = "";
+                        for (DataSnapshot data : categoryFolder.getChildren()) {
+                            try {
+                                String status = String.valueOf(data.child("status").getValue());
+                                if (status.equals("null")) status = "Confirmed";
 
-                        if (!status.equals(currentTabStatus)) continue;
-                        if (!currentDateFilter.isEmpty() && !date.equals(currentDateFilter)) continue;
+                                String date = String.valueOf(data.child("date").getValue());
+                                if (date.equals("null")) date = "";
 
-                        hasBookings = true;
-                        addAdminBookingCard(data, status, date);
+                                if (!status.equals(currentTabStatus)) continue;
+                                if (!currentDateFilter.isEmpty() && !date.equals(currentDateFilter)) continue;
+
+                                hasBookings = true;
+                                // LEMPAR NAMA LACI KE METHOD PEMBUAT CARD
+                                addAdminBookingCard(data, status, date, categoryKey);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
 
                     if (!hasBookings) {
@@ -189,7 +195,8 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
         }
     }
 
-    private void addAdminBookingCard(DataSnapshot data, String status, String date) {
+    // PERHATIKAN: Ada tambahan parameter 'categoryKey' di bawah ini
+    private void addAdminBookingCard(DataSnapshot data, String status, String date, String categoryKey) {
         try {
             String bookingId = data.getKey();
             String customerName = String.valueOf(data.child("customerName").getValue());
@@ -202,7 +209,7 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
             if (paymentStatus.equals("null")) paymentStatus = "Menunggu Konfirmasi";
 
             String serviceType = String.valueOf(data.child("serviceType").getValue());
-            if (serviceType.equals("null") || serviceType.isEmpty()) serviceType = "Custom Nails";
+            if (serviceType.equals("null") || serviceType.isEmpty()) serviceType = categoryKey.replace("_", " ");
 
             String paymentProof = data.hasChild("paymentProof") ? String.valueOf(data.child("paymentProof").getValue()) : "";
             String referenceImage = data.hasChild("referenceImage") ? String.valueOf(data.child("referenceImage").getValue()) : "";
@@ -243,7 +250,6 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
             tvStatusText.setText(status);
             tvStatusText.setTypeface(poppinsBold);
             tvStatusText.setTextSize(12);
-            // Ganti warna status Confirmed menjadi BIRU
             if (status.equalsIgnoreCase("Confirmed") || status.equalsIgnoreCase("Upcoming")) tvStatusText.setTextColor(Color.parseColor("#3F51B5"));
             else if (status.equalsIgnoreCase("Completed")) tvStatusText.setTextColor(Color.parseColor("#4CAF50"));
             else tvStatusText.setTextColor(Color.parseColor("#D6001C"));
@@ -267,7 +273,6 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
             tvMethodText.setText(metodePembayaran);
             tvMethodText.setTypeface(poppinsBold);
             tvMethodText.setTextSize(12);
-            // Ganti warna metode pembayaran menjadi BIRU
             tvMethodText.setTextColor(Color.parseColor("#3F51B5"));
             statusRow.addView(tvMethodText);
 
@@ -275,7 +280,6 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
 
             TextView btnToggle = new TextView(this);
             btnToggle.setText("Lihat Detail ▼");
-            // Ganti warna tombol tutup/lihat detail menjadi BIRU
             btnToggle.setTextColor(Color.parseColor("#3F51B5"));
             btnToggle.setTypeface(poppinsBold);
             btnToggle.setPadding(0, 16, 0, 0);
@@ -301,9 +305,7 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
             String notes = String.valueOf(data.child("notes").getValue());
 
             String colorDisplay = (!colorType.equals("null") ? colorType : "-");
-            if (!colorName.equals("null") && !colorName.isEmpty()) {
-                colorDisplay += " - " + colorName;
-            }
+            if (!colorName.equals("null") && !colorName.isEmpty()) colorDisplay += " - " + colorName;
             colorDisplay += " (" + (!hex.equals("null") ? hex : "") + ")";
 
             StringBuilder addonsStr = new StringBuilder();
@@ -338,9 +340,7 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
                 ivProof.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 400));
                 ivProof.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 ivProof.setPadding(0, 8, 0, 16);
-
                 loadSafeImage(ivProof, paymentProof);
-
                 ivProof.setOnClickListener(v -> showImagePopup(paymentProof, "Bukti Pembayaran"));
                 detailLayout.addView(ivProof);
             }
@@ -352,9 +352,7 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
                 ivRef.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 400));
                 ivRef.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 ivRef.setPadding(0, 8, 0, 16);
-
                 loadSafeImage(ivRef, referenceImage);
-
                 ivRef.setOnClickListener(v -> showImagePopup(referenceImage, "Gambar Referensi Kuku"));
                 detailLayout.addView(ivRef);
             }
@@ -374,12 +372,11 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
                 btnParams.setMargins(0, 0, 0, 16);
                 btnTerima.setLayoutParams(btnParams);
                 btnTerima.setPadding(0, 32, 0, 32);
-
-                // Menggunakan background tombol standar aplikasi (Biru)
                 btnTerima.setBackgroundResource(R.drawable.bg_button_rounded);
 
                 btnTerima.setOnClickListener(v -> {
-                    bookingsRef.child(bookingId).child("paymentStatus").setValue("Lunas");
+                    // PENTING: Update berdasarkan folder kategori
+                    bookingsRef.child(categoryKey).child(bookingId).child("paymentStatus").setValue("Lunas");
                     Toast.makeText(this, "Pembayaran Lunas!", Toast.LENGTH_SHORT).show();
                 });
                 buttonContainer.addView(btnTerima);
@@ -400,14 +397,13 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
                 completeParams.setMargins(0, 0, 8, 0);
                 btnComplete.setLayoutParams(completeParams);
                 btnComplete.setPadding(0, 32, 0, 32);
-
-                // MENGGUNAKAN TOMBOL BIRU STANDAR
                 btnComplete.setBackgroundResource(R.drawable.bg_button_rounded);
 
                 String finalCustomerName = customerName;
                 btnComplete.setOnClickListener(v -> {
-                    updateBookingStatus(bookingId, "Completed");
-                    bookingsRef.child(bookingId).child("paymentStatus").setValue("Lunas");
+                    // PENTING: Panggil method update dengan folder kategori
+                    updateBookingStatus(bookingId, categoryKey, "Completed");
+                    bookingsRef.child(categoryKey).child(bookingId).child("paymentStatus").setValue("Lunas");
 
                     SharedPreferences session = getSharedPreferences("UserSession", MODE_PRIVATE);
                     int currentPoints = session.getInt("USER_POINTS", 0);
@@ -425,7 +421,6 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
                     Toast.makeText(OwnerManageBookingActivity.this, "Selesai! +50 Poin dikirim ke Pelanggan", Toast.LENGTH_LONG).show();
                 });
 
-                // Tombol Batalkan (Tetap Merah untuk penanda bahaya/batal)
                 TextView btnCancel = new TextView(this);
                 btnCancel.setText("Batalkan");
                 btnCancel.setGravity(Gravity.CENTER);
@@ -437,11 +432,11 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
                 btnCancel.setLayoutParams(cancelParams);
                 btnCancel.setPadding(0, 32, 0, 32);
                 android.graphics.drawable.GradientDrawable bgCancel = new android.graphics.drawable.GradientDrawable();
-                bgCancel.setColor(Color.parseColor("#E53935")); // Merah
-                bgCancel.setCornerRadius(24); // Agar melengkung
+                bgCancel.setColor(Color.parseColor("#E53935"));
+                bgCancel.setCornerRadius(24);
                 btnCancel.setBackground(bgCancel);
 
-                btnCancel.setOnClickListener(v -> updateBookingStatus(bookingId, "Canceled"));
+                btnCancel.setOnClickListener(v -> updateBookingStatus(bookingId, categoryKey, "Canceled"));
 
                 actionRow.addView(btnComplete);
                 actionRow.addView(btnCancel);
@@ -474,18 +469,17 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
         ImageView iv = new ImageView(this);
         iv.setPadding(16, 16, 16, 16);
         iv.setAdjustViewBounds(true);
-
         loadSafeImage(iv, base64String);
-
         builder.setTitle(title).setView(iv).setPositiveButton("Tutup", null).show();
     }
 
-    private void updateBookingStatus(String bookingId, String newStatus) {
+    // PENTING: Method ini sekarang butuh categoryKey!
+    private void updateBookingStatus(String bookingId, String categoryKey, String newStatus) {
         new AlertDialog.Builder(this)
                 .setTitle("Konfirmasi")
                 .setMessage("Ubah status pesanan menjadi " + newStatus + "?")
                 .setPositiveButton("Ya", (dialog, which) -> {
-                    bookingsRef.child(bookingId).child("status").setValue(newStatus)
+                    bookingsRef.child(categoryKey).child(bookingId).child("status").setValue(newStatus)
                             .addOnSuccessListener(aVoid -> Toast.makeText(OwnerManageBookingActivity.this, "Status diubah!", Toast.LENGTH_SHORT).show());
                 })
                 .setNegativeButton("Tidak", null).show();

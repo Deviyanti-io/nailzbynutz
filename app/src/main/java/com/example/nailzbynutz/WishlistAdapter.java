@@ -2,7 +2,7 @@ package com.example.nailzbynutz;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
+import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,40 +11,34 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.google.firebase.database.DatabaseReference;
-
+import com.bumptech.glide.Glide;
 import java.text.NumberFormat;
-import java.util.List;
+import java.util.ArrayList;
 import java.util.Locale;
 
 public class WishlistAdapter extends RecyclerView.Adapter<WishlistAdapter.ViewHolder> {
 
     private Context context;
-    private List<WishlistItem> wishlistItems;
-    private DatabaseReference userWishlistRef; // Digunakan untuk menghapus data di server
+    private ArrayList<WishlistItem> list;
 
-    public WishlistAdapter(Context context, List<WishlistItem> wishlistItems, DatabaseReference userWishlistRef) {
+    public WishlistAdapter(Context context, ArrayList<WishlistItem> list) {
         this.context = context;
-        this.wishlistItems = wishlistItems;
-        this.userWishlistRef = userWishlistRef;
+        this.list = list;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_nail, parent, false);
-        return new ViewHolder(view);
+        // Menggunakan layout item_explore yang sama
+        View v = LayoutInflater.from(context).inflate(R.layout.item_explore, parent, false);
+        return new ViewHolder(v);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        WishlistItem item = wishlistItems.get(position);
-
+        WishlistItem item = list.get(position);
         holder.tvName.setText(item.name);
-        holder.ivHeart.setImageResource(R.drawable.ic_heart_on);
 
-        // Format Harga ke Rupiah
         Locale localeID = new Locale("in", "ID");
         NumberFormat formatRupiah = NumberFormat.getCurrencyInstance(localeID);
         formatRupiah.setMaximumFractionDigits(0);
@@ -54,52 +48,70 @@ public class WishlistAdapter extends RecyclerView.Adapter<WishlistAdapter.ViewHo
             holder.tvPrice.setText("Rp " + item.price);
         }
 
-        // Tampilkan Gambar (baik dari drawable lokal maupun URL galeri/Firebase)
+        // Tampilkan Gambar
         if (item.isLocal || (item.imageUrl != null && item.imageUrl.startsWith("res_"))) {
             try {
                 int resId = Integer.parseInt(item.imageUrl.replace("res_", ""));
-                holder.ivImage.setImageResource(resId);
+                holder.imgNail.setImageResource(resId);
             } catch (Exception e) {
-                holder.ivImage.setImageResource(android.R.color.darker_gray);
+                holder.imgNail.setImageResource(android.R.color.darker_gray);
             }
         } else {
-            try {
-                holder.ivImage.setImageURI(Uri.parse(item.imageUrl));
-            } catch (Exception e) {
-                holder.ivImage.setImageResource(android.R.color.darker_gray);
-            }
+            Glide.with(context).load(item.imageUrl).placeholder(android.R.color.darker_gray).into(holder.imgNail);
         }
 
-        // AKSI: Saat ikon Love diklik untuk menghapus dari Wishlist
-        holder.ivHeart.setOnClickListener(v -> {
-            // Hapus data langsung dari server Firebase!
-            userWishlistRef.child(item.id).removeValue();
-            Toast.makeText(context, item.name + " dihapus dari Wishlist", Toast.LENGTH_SHORT).show();
+        // Set ikon hati pink menyala
+        holder.btnLike.setImageResource(R.drawable.ic_heart_on);
+        holder.btnLike.setColorFilter(android.graphics.Color.parseColor("#FF4081"));
+
+        // Aksi hapus dari Wishlist
+        holder.btnLike.setOnClickListener(v -> {
+            SharedPreferences localWishlist = context.getSharedPreferences("LocalWishlist", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = localWishlist.edit();
+
+            // Hapus semua data terkait kuku ini dari SharedPreferences
+            editor.remove(item.id);
+            editor.remove(item.id + "_name");
+            editor.remove(item.id + "_price");
+            editor.remove(item.id + "_image");
+            editor.remove(item.id + "_isLocal");
+            editor.apply();
+
+            list.remove(position);
+            notifyItemRemoved(position);
+            notifyItemRangeChanged(position, list.size());
+
+            Toast.makeText(context, "Dihapus dari Wishlist", Toast.LENGTH_SHORT).show();
+
+            // Memaksa refresh activity agar layout "Kosong" muncul jika list benar-benar habis
+            if (context instanceof WishlistActivity) {
+                ((WishlistActivity) context).recreate();
+            }
         });
 
-        // AKSI: Saat item diklik, lanjutkan ke pemilihan bentuk kuku
+        // Aksi klik untuk pesan
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, CustomNailShapeActivity.class);
-            intent.putExtra("PRODUCT_NAME", item.name);
+            Intent intent = new Intent(context, CustomNailColorActivity.class);
+            intent.putExtra("SHAPE_DATA", item.name);
             context.startActivity(intent);
         });
     }
 
     @Override
     public int getItemCount() {
-        return wishlistItems.size();
+        return list.size();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView ivImage, ivHeart;
+    public class ViewHolder extends RecyclerView.ViewHolder {
+        ImageView imgNail, btnLike;
         TextView tvName, tvPrice;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            ivImage = itemView.findViewById(R.id.iv_nail_image);
-            ivHeart = itemView.findViewById(R.id.iv_heart);
-            tvName = itemView.findViewById(R.id.tv_nail_name);
-            tvPrice = itemView.findViewById(R.id.tv_nail_price);
+            imgNail = itemView.findViewById(R.id.img_explore);
+            btnLike = itemView.findViewById(R.id.btn_like_item);
+            tvName = itemView.findViewById(R.id.tv_explore_name);
+            tvPrice = itemView.findViewById(R.id.tv_explore_price);
         }
     }
 }

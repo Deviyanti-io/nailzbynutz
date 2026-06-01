@@ -125,49 +125,52 @@ public class PaymentActivity extends AppCompatActivity {
             timeRange = String.format("%02d.%02d - %02d.%02d", h, Integer.parseInt(parts[1]), h + 1, Integer.parseInt(parts[1]) + 30);
         } catch (Exception e) { timeRange = time; }
 
-        HashMap<String, Object> data = new HashMap<>();
-        data.put("customerName", getSharedPreferences("UserSession", MODE_PRIVATE).getString("USER_NAME", "Pelanggan"));
-        data.put("date", date);
-        data.put("time", timeRange);
-        data.put("status", "Confirmed");
-        data.put("paymentStatus", payStatus);
-        data.put("serviceType", serviceType);
-        data.put("grandTotal", intent.getIntExtra("GRAND_TOTAL", 0));
+        HashMap<String, Object> dataUtama = new HashMap<>();
+        dataUtama.put("customerName", getSharedPreferences("UserSession", MODE_PRIVATE).getString("USER_NAME", "Pelanggan"));
+        dataUtama.put("date", date);
+        dataUtama.put("time", timeRange);
+        dataUtama.put("status", "Confirmed");
+        dataUtama.put("paymentStatus", payStatus);
+        dataUtama.put("serviceType", serviceType);
+        dataUtama.put("grandTotal", intent.getIntExtra("GRAND_TOTAL", 0));
+        dataUtama.put("shape", intent.getStringExtra("SHAPE_DATA") != null ? intent.getStringExtra("SHAPE_DATA") : "-");
+        dataUtama.put("length", intent.getStringExtra("LENGTH_DATA") != null ? intent.getStringExtra("LENGTH_DATA") : "-");
+        dataUtama.put("colorType", intent.getStringExtra("COLOR_TYPE_DATA") != null ? intent.getStringExtra("COLOR_TYPE_DATA") : "-");
+        dataUtama.put("colorHex", intent.getStringExtra("COLOR_HEX_DATA") != null ? intent.getStringExtra("COLOR_HEX_DATA") : "0");
+        dataUtama.put("colorName", intent.getStringExtra("COLOR_NAME_DATA") != null ? intent.getStringExtra("COLOR_NAME_DATA") : "");
+        dataUtama.put("finish", intent.getStringExtra("FINISH_DATA") != null ? intent.getStringExtra("FINISH_DATA") : "-");
+        dataUtama.put("sizeReport", intent.getStringExtra("SIZE_DATA") != null ? intent.getStringExtra("SIZE_DATA") : "-");
+        dataUtama.put("notes", intent.getStringExtra("NOTES_DATA") != null ? intent.getStringExtra("NOTES_DATA") : "-");
 
-        data.put("shape", intent.getStringExtra("SHAPE_DATA") != null ? intent.getStringExtra("SHAPE_DATA") : "-");
-        data.put("length", intent.getStringExtra("LENGTH_DATA") != null ? intent.getStringExtra("LENGTH_DATA") : "-");
-        data.put("colorType", intent.getStringExtra("COLOR_TYPE_DATA") != null ? intent.getStringExtra("COLOR_TYPE_DATA") : "-");
-        data.put("colorHex", intent.getStringExtra("COLOR_HEX_DATA") != null ? intent.getStringExtra("COLOR_HEX_DATA") : "0");
-
-        // PERBAIKAN: Menyimpan nama warna ke database
-        data.put("colorName", intent.getStringExtra("COLOR_NAME_DATA") != null ? intent.getStringExtra("COLOR_NAME_DATA") : "");
-
-        data.put("finish", intent.getStringExtra("FINISH_DATA") != null ? intent.getStringExtra("FINISH_DATA") : "-");
-        data.put("sizeReport", intent.getStringExtra("SIZE_DATA") != null ? intent.getStringExtra("SIZE_DATA") : "-");
-        data.put("notes", intent.getStringExtra("NOTES_DATA") != null ? intent.getStringExtra("NOTES_DATA") : "-");
-
-        // PERBAIKAN: Menyimpan Addon + Quantity (Contoh: "Pearls (x2)")
         HashMap<String, Integer> addonCounts = (HashMap<String, Integer>) intent.getSerializableExtra("ADDON_COUNTS_DATA");
         ArrayList<String> addons = intent.getStringArrayListExtra("ADDONS_DATA");
         ArrayList<String> formattedAddons = new ArrayList<>();
-
         if (addons != null && !addons.isEmpty()) {
             for (String addon : addons) {
                 int qty = (addonCounts != null && addonCounts.containsKey(addon)) ? addonCounts.get(addon) : 1;
                 formattedAddons.add(addon + " (x" + qty + ")");
             }
-            data.put("addons", formattedAddons);
+            dataUtama.put("addons", formattedAddons);
         } else {
-            data.put("addons", new ArrayList<String>());
+            dataUtama.put("addons", new ArrayList<String>());
         }
 
         String uploadedRefImage = intent.getStringExtra("UPLOADED_IMAGE_DATA");
-        if (uploadedRefImage != null) data.put("referenceImage", uploadedRefImage);
+        if (uploadedRefImage != null) dataUtama.put("referenceImage", uploadedRefImage);
+        if (base64ProofUrl != null) dataUtama.put("paymentProof", base64ProofUrl);
 
-        if (base64ProofUrl != null) data.put("paymentProof", base64ProofUrl);
+        // STRUKTUR NESTED: Laci Kategori -> ID Rapi
+        String folderService = (serviceType != null) ? serviceType.replace(" ", "_") : "Lainnya";
+        String username = dataUtama.get("customerName").toString().replaceAll("\\s+", "");
+        String waktuSekarang = new java.text.SimpleDateFormat("ddMMyy_HHmmss", Locale.getDefault()).format(new Date());
+        String customOrderId = username + "_" + waktuSekarang;
 
-        FirebaseDatabase.getInstance("https://nailzbynutz-default-rtdb.asia-southeast1.firebasedatabase.app").getReference("bookings")
-                .push().setValue(data).addOnSuccessListener(aVoid -> {
+        FirebaseDatabase.getInstance("https://nailzbynutz-default-rtdb.asia-southeast1.firebasedatabase.app")
+                .getReference("bookings")
+                .child(folderService)
+                .child(customOrderId)
+                .setValue(dataUtama)
+                .addOnSuccessListener(aVoid -> {
                     progressDialog.dismiss();
                     Toast.makeText(this, "Pesanan Berhasil!", Toast.LENGTH_LONG).show();
                     Intent home = new Intent(this, MainNavigationActivity.class);

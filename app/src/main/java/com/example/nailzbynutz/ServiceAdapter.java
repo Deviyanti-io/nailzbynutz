@@ -15,7 +15,7 @@ public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ViewHold
 
     private List<ServiceModel> serviceList;
 
-    public ServiceAdapter(List<ServiceModel> serviceList) {
+    public ServiceAdapter(HistoryActivity historyActivity, List<ServiceModel> serviceList) {
         this.serviceList = serviceList;
     }
 

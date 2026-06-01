@@ -3,29 +3,18 @@ package com.example.nailzbynutz;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.LinearLayout;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
 public class WishlistActivity extends AppCompatActivity {
 
     private RecyclerView rvWishlist;
+    private View layoutEmpty;
     private WishlistAdapter adapter;
-    private LinearLayout emptyLayout;
-
-    private List<WishlistItem> wishlistItems;
-    private DatabaseReference userWishlistRef;
+    private ArrayList<WishlistItem> wishlistData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,66 +22,55 @@ public class WishlistActivity extends AppCompatActivity {
         setContentView(R.layout.activity_wishlist);
 
         rvWishlist = findViewById(R.id.rv_wishlist);
-        emptyLayout = findViewById(R.id.layout_empty_state);
-        rvWishlist.setLayoutManager(new LinearLayoutManager(this));
+        layoutEmpty = findViewById(R.id.layout_empty_wishlist);
 
-        wishlistItems = new ArrayList<>();
+        View btnBack = findViewById(R.id.btn_back);
+        if(btnBack != null) btnBack.setOnClickListener(v -> finish());
 
-        // 1. Ambil username yang sedang login
-        SharedPreferences session = getSharedPreferences("UserSession", MODE_PRIVATE);
-        String currentUsername = session.getString("USER_NAME", "Guest");
-
-        // 2. Arahkan ke database wishlist milik user tersebut
-        userWishlistRef = FirebaseDatabase.getInstance("https://nailzbynutz-default-rtdb.asia-southeast1.firebasedatabase.app")
-                .getReference("users").child(currentUsername).child("wishlist");
-
-        // 3. Pasang Adapter dan kirim referensi Firebase-nya agar Adapter bisa menghapus data
-        adapter = new WishlistAdapter(this, wishlistItems, userWishlistRef);
+        wishlistData = new ArrayList<>();
+        rvWishlist.setLayoutManager(new GridLayoutManager(this, 2));
+        adapter = new WishlistAdapter(this, wishlistData);
         rvWishlist.setAdapter(adapter);
 
-        // 4. Tarik data dari server
-        loadWishlistFromFirebase();
-
-        findViewById(R.id.btn_back_wishlist).setOnClickListener(v -> finish());
+        loadWishlistLocal();
     }
 
-    private void loadWishlistFromFirebase() {
-        // addValueEventListener akan membuat daftar ini update secara otomatis (real-time)
-        userWishlistRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                wishlistItems.clear(); // Bersihkan daftar lama
+    private void loadWishlistLocal() {
+        SharedPreferences localWishlist = getSharedPreferences("LocalWishlist", MODE_PRIVATE);
+        wishlistData.clear();
 
-                if (snapshot.exists()) {
-                    for (DataSnapshot data : snapshot.getChildren()) {
-                        String id = data.getKey();
-                        String name = data.child("name").getValue(String.class);
-                        String price = data.child("price").getValue(String.class);
-                        String imageUrl = data.child("imageUrl").getValue(String.class);
+        Map<String, ?> allEntries = localWishlist.getAll();
+        for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
+            String key = entry.getKey();
 
-                        // Menangani tipe boolean dengan aman
-                        Boolean isLocalObj = data.child("isLocal").getValue(Boolean.class);
-                        boolean isLocal = (isLocalObj != null) ? isLocalObj : false;
-
-                        wishlistItems.add(new WishlistItem(id, name, price, imageUrl, isLocal));
-                    }
-                }
-
-                adapter.notifyDataSetChanged(); // Beritahu adapter ada data baru
-
-                // Atur tampilan kosong
-                if (wishlistItems.isEmpty()) {
-                    emptyLayout.setVisibility(View.VISIBLE);
-                    rvWishlist.setVisibility(View.GONE);
-                } else {
-                    emptyLayout.setVisibility(View.GONE);
-                    rvWishlist.setVisibility(View.VISIBLE);
-                }
+            // PERBAIKAN: Abaikan key yang berupa metadata tambahan, biarkan ID utamanya diproses
+            if (key.endsWith("_name") || key.endsWith("_price") || key.endsWith("_image") || key.endsWith("_isLocal")) {
+                continue;
             }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
+            if (entry.getValue() instanceof Boolean) {
+                Boolean isLiked = (Boolean) entry.getValue();
+                if (isLiked) {
+                    WishlistItem item = new WishlistItem();
+                    item.id = key;
+                    item.name = localWishlist.getString(key + "_name", key.replace("_", " "));
+                    item.price = localWishlist.getString(key + "_price", "0");
+                    item.imageUrl = localWishlist.getString(key + "_image", "");
+                    item.isLocal = localWishlist.getBoolean(key + "_isLocal", false);
+                    wishlistData.add(item);
+                }
             }
-        });
+        }
+
+        // Atur Tampilan Kosong / Ada Isi
+        if (wishlistData.isEmpty()) {
+            if (layoutEmpty != null) layoutEmpty.setVisibility(View.VISIBLE);
+            if (rvWishlist != null) rvWishlist.setVisibility(View.GONE);
+        } else {
+            if (layoutEmpty != null) layoutEmpty.setVisibility(View.GONE);
+            if (rvWishlist != null) rvWishlist.setVisibility(View.VISIBLE);
+        }
+
+        if (adapter != null) adapter.notifyDataSetChanged();
     }
 }

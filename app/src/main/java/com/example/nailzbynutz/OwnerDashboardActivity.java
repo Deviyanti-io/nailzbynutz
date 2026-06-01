@@ -15,6 +15,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.NumberFormat;
+import java.util.HashMap;
 import java.util.Locale;
 
 public class OwnerDashboardActivity extends AppCompatActivity {
@@ -27,7 +28,6 @@ public class OwnerDashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_owner_dashboard);
 
-        // PERBAIKAN 1: Menggunakan "View" secara umum agar tidak crash jika di XML Anda menggunakan LinearLayout/Button/CardView
         View btnManageBookings = findViewById(R.id.btn_manage_bookings);
         View btnManageCatalog = findViewById(R.id.btn_manage_catalog);
         View btnLogoutOwner = findViewById(R.id.btn_logout_owner);
@@ -43,20 +43,24 @@ public class OwnerDashboardActivity extends AppCompatActivity {
                 int activeOrders = 0;
                 long totalRevenue = 0;
 
-                for (DataSnapshot bookingSnap : snapshot.getChildren()) {
-                    String status = bookingSnap.child("status").getValue(String.class);
+                // DOBEL LOOP + SABUK PENGAMAN
+                for (DataSnapshot categorySnap : snapshot.getChildren()) {
+                    for (DataSnapshot bookingSnap : categorySnap.getChildren()) {
+                        try {
+                            String status = bookingSnap.child("status").getValue(String.class);
 
-                    if ("Confirmed".equals(status) || "Pending".equals(status)) {
-                        activeOrders++;
-                    }
+                            if ("Confirmed".equals(status) || "Pending".equals(status)) {
+                                activeOrders++;
+                            }
 
-                    if ("Completed".equals(status)) {
-                        // PERBAIKAN 2: Anti-crash saat menghitung harga dari Firebase
-                        Object priceObj = bookingSnap.child("grandTotal").getValue();
-                        if (priceObj != null) {
-                            try {
-                                totalRevenue += Long.parseLong(priceObj.toString());
-                            } catch (Exception e) {}
+                            if ("Completed".equals(status)) {
+                                Object priceObj = bookingSnap.child("grandTotal").getValue();
+                                if (priceObj != null) {
+                                    totalRevenue += Long.parseLong(priceObj.toString());
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace(); // Cegah crash jika ada data cacat
                         }
                     }
                 }

@@ -1,77 +1,88 @@
 package com.example.nailzbynutz;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.TextView;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import java.util.ArrayList;
-import java.util.List;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.text.NumberFormat;
+import java.util.Locale;
 
 public class ServicesActivity extends AppCompatActivity {
 
-    private RecyclerView rvServices;
-    private BottomNavigationView bottomNav;
-    private ServiceAdapter adapter;
-    private List<ServiceModel> serviceList;
+    private TextView tvManicurePrice, tvGelPrice, tvCustomPrice;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_services);
 
-        // SESUAI KODE ASLI KAMU: Menghubungkan ID komponen UI
-        rvServices = findViewById(R.id.rv_services);
-        bottomNav = findViewById(R.id.bottom_navigation);
+        // Inisialisasi TextView harga (Pastikan ID ini sesuai dengan XML Anda)
+        tvManicurePrice = findViewById(R.id.tv_price_manicure);
+        tvGelPrice = findViewById(R.id.tv_price_gel);
+        tvCustomPrice = findViewById(R.id.tv_price_custom);
 
-        // Setup RecyclerView secara vertikal lurus ke bawah
-        rvServices.setLayoutManager(new LinearLayoutManager(this));
-        loadServices();
-        adapter = new ServiceAdapter(serviceList);
-        rvServices.setAdapter(adapter);
+        View btnBack = findViewById(R.id.btn_back);
+        if (btnBack != null) btnBack.setOnClickListener(v -> finish());
 
-        // Fungsi tombol panah kembali di top bar untuk menutup halaman layanan
-        findViewById(R.id.btn_back_services).setOnClickListener(v -> finish());
+        // Aksi klik ke halaman masing-masing servis
+        View cardManicure = findViewById(R.id.card_manicure);
+        if (cardManicure != null) {
+            cardManicure.setOnClickListener(v -> startActivity(new Intent(this, ManicureActivity.class)));
+        }
 
-        // PERBAIKAN BOTTOM NAVIGATION: Sinkronisasi menu bar bawah dari halaman internal service
-        bottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_home) {
-                startActivity(new Intent(this, MainNavigationActivity.class));
-                overridePendingTransition(0, 0); // Efek transisi instan tanpa jeda kedip
-                finish(); // Menutup activity lama agar tumpukan RAM efisien
-                return true;
-            } else if (id == R.id.nav_explore) {
-                startActivity(new Intent(this, ExploreActivity.class));
-                overridePendingTransition(0, 0);
-                return true;
-            } else if (id == R.id.nav_history) {
-                startActivity(new Intent(this, HistoryActivity.class));
-                overridePendingTransition(0, 0);
-                return true;
-            } else if (id == R.id.nav_profile) {
-                // Membuka halaman ProfileActivity secara lancar tanpa macet klik
-                startActivity(new Intent(this, ProfileActivity.class));
-                overridePendingTransition(0, 0);
-                return true;
-            }
-            return false;
-        });
+        View cardGelPolish = findViewById(R.id.card_gel_polish);
+        if (cardGelPolish != null) {
+            cardGelPolish.setOnClickListener(v -> startActivity(new Intent(this, GelPolishActivity.class)));
+        }
 
-        // Menandai secara visual tab Explore sebagai menu aktif saat ini
-        bottomNav.setSelectedItemId(R.id.nav_explore);
+        View cardCustomNails = findViewById(R.id.card_custom_nails);
+        if (cardCustomNails != null) {
+            cardCustomNails.setOnClickListener(v -> startActivity(new Intent(this, CustomNailShapeActivity.class)));
+        }
+
+        // Panggil data harga dari Firebase
+        loadServicesFromFirebase();
     }
 
-    // Mengisi data item list katalog jasa salon kuku beserta rincian harganya
-    private void loadServices() {
-        serviceList = new ArrayList<>();
-        serviceList.add(new ServiceModel("Basic Manicure", "Pembersihan kuku, perapian kutikula, dan pijat tangan", 45000, R.drawable.ic_nail_shape));
-        serviceList.add(new ServiceModel("Spa Manicure", "Basic manicure + rendam garam, scrub, masker tangan", 75000, R.drawable.ic_nail_shape));
-        serviceList.add(new ServiceModel("Basic Pedicure", "Perawatan kaki + pembersihan kuku kaki", 65000, R.drawable.ic_nail_shape));
-        serviceList.add(new ServiceModel("Spa Pedicure", "Rendam kaki, scrub, masker, pijat kaki", 95000, R.drawable.ic_nail_shape));
-        serviceList.add(new ServiceModel("Gel Polish", "Pewarnaan gel tahan lama", 85000, R.drawable.ic_gel));
-        serviceList.add(new ServiceModel("Nail Art", "Desain kuku sesuai permintaan", 50000, R.drawable.ic_top_polish));
-        serviceList.add(new ServiceModel("Press On Nail", "Pasang kuku palsu custom", 120000, R.drawable.ic_layers));
+    private void loadServicesFromFirebase() {
+        DatabaseReference svcRef = FirebaseDatabase.getInstance("https://nailzbynutz-default-rtdb.asia-southeast1.firebasedatabase.app").getReference("services");
+
+        svcRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Locale localeID = new Locale("in", "ID");
+                NumberFormat formatRupiah = NumberFormat.getCurrencyInstance(localeID);
+                formatRupiah.setMaximumFractionDigits(0);
+
+                if (snapshot.hasChild("Manicure") && tvManicurePrice != null) {
+                    int priceMani = snapshot.child("Manicure").child("basePrice").getValue(Integer.class);
+                    tvManicurePrice.setText(formatRupiah.format(priceMani));
+                }
+
+                if (snapshot.hasChild("Gel_Polish") && tvGelPrice != null) {
+                    int priceGel = snapshot.child("Gel_Polish").child("basePrice").getValue(Integer.class);
+                    tvGelPrice.setText(formatRupiah.format(priceGel));
+                }
+
+                if (snapshot.hasChild("Custom_Nails") && tvCustomPrice != null) {
+                    int priceCustom = snapshot.child("Custom_Nails").child("basePrice").getValue(Integer.class);
+                    tvCustomPrice.setText(formatRupiah.format(priceCustom));
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
     }
 }
