@@ -1,83 +1,107 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/background_primary"
-    android:padding="20dp">
-
-    <ImageView
-        android:id="@+id/btn_back_edit"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:src="@drawable/ic_back"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="10dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="10dp"
-        android:text="Edit Profil"
-        android:textSize="20sp"
-        android:textColor="@color/text_primary"
-        android:fontFamily="@font/fredoka_bold" />
+    android:orientation="vertical"
+    android:background="#F8F9FA"
+    android:padding="24dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/btn_back_edit"
-        android:layout_marginTop="40dp"
-        android:orientation="vertical">
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="32dp">
+
+        <ImageView
+            android:id="@+id/btn_back_edit_profile"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_back"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="Kembali" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Nama Lengkap"
-            android:textColor="@color/text_secondary"
-            android:fontFamily="@font/poppins_medium"
-            android:layout_marginBottom="8dp" />
-
-        <EditText
-            android:id="@+id/et_edit_name"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:background="@drawable/bg_card_rounded"
-            android:paddingHorizontal="16dp"
-            android:textColor="@color/text_primary"
-            android:fontFamily="@font/poppins_regular"
-            android:layout_marginBottom="20dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Email"
-            android:textColor="@color/text_secondary"
-            android:fontFamily="@font/poppins_medium"
-            android:layout_marginBottom="8dp" />
-
-        <EditText
-            android:id="@+id/et_edit_email"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:background="@drawable/bg_card_rounded"
-            android:paddingHorizontal="16dp"
-            android:textColor="@color/text_primary"
-            android:fontFamily="@font/poppins_regular"
-            android:inputType="textEmailAddress"
-            android:layout_marginBottom="30dp" />
-
-        <Button
-            android:id="@+id/btn_save_profile"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:text="Simpan Perubahan"
-            android:textColor="@color/white"
-            android:backgroundTint="@color/lavender_dark"
-            android:textAllCaps="false"
-            android:fontFamily="@font/poppins_bold"
-            app:cornerRadius="28dp" />
-
+            android:layout_marginStart="16dp"
+            android:text="Edit Profil"
+            android:textColor="#333333"
+            android:textSize="20sp"
+            android:textStyle="bold" />
     </LinearLayout>
-</RelativeLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nama Lengkap"
+        android:textColor="#808080"
+        android:textSize="14sp"
+        android:layout_marginBottom="8dp" />
+
+    <EditText
+        android:id="@+id/et_edit_name"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:background="@drawable/bg_card_rounded"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:textColor="#333333"
+        android:textSize="14sp"
+        android:inputType="textPersonName"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Alamat Email"
+        android:textColor="#808080"
+        android:textSize="14sp"
+        android:layout_marginBottom="8dp" />
+
+    <EditText
+        android:id="@+id/et_edit_email"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:background="@drawable/bg_card_rounded"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:textColor="#333333"
+        android:textSize="14sp"
+        android:inputType="textEmailAddress"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nomor Handphone"
+        android:textColor="#808080"
+        android:textSize="14sp"
+        android:layout_marginBottom="8dp" />
+
+    <EditText
+        android:id="@+id/et_edit_phone"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:background="@drawable/bg_card_rounded"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:textColor="#333333"
+        android:textSize="14sp"
+        android:inputType="phone"
+        android:layout_marginBottom="32dp" />
+
+    <Button
+        android:id="@+id/btn_save_profile"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:backgroundTint="@color/lavender_dark"
+        android:text="Simpan Perubahan"
+        android:textAllCaps="false"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+</LinearLayout>

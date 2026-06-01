@@ -35,8 +35,8 @@ public class ExploreActivity extends AppCompatActivity {
     private ArrayList<OwnerManageCatalogActivity.CatalogItem> filteredList;
 
     private DatabaseReference catalogRef;
-    private DatabaseReference userWishlistRef; // Referensi baru untuk Wishlist
-    private ArrayList<String> likedItemIds = new ArrayList<>(); // Menyimpan ID kuku yang disukai
+    private DatabaseReference userWishlistRef;
+    private ArrayList<String> likedItemIds = new ArrayList<>();
 
     private EditText etSearch;
     private SharedPreferences localPrefs;
@@ -48,14 +48,11 @@ public class ExploreActivity extends AppCompatActivity {
 
         localPrefs = getSharedPreferences("LocalCatalogPrefs", MODE_PRIVATE);
 
-        // Ambil Username yang sedang login
         SharedPreferences session = getSharedPreferences("UserSession", MODE_PRIVATE);
         String currentUsername = session.getString("USER_NAME", "Guest");
 
-        // Inisialisasi Firebase
         FirebaseDatabase database = FirebaseDatabase.getInstance("https://nailzbynutz-default-rtdb.asia-southeast1.firebasedatabase.app");
         catalogRef = database.getReference("catalogs");
-        // Membuat folder khusus wishlist untuk user yang sedang login
         userWishlistRef = database.getReference("users").child(currentUsername).child("wishlist");
 
         rvExplore = findViewById(R.id.rv_explore);
@@ -80,7 +77,6 @@ public class ExploreActivity extends AppCompatActivity {
             @Override public void afterTextChanged(Editable s) {}
         });
 
-        // Panggil fungsi memuat data
         loadWishlistData();
         loadCatalogData();
 
@@ -104,16 +100,15 @@ public class ExploreActivity extends AppCompatActivity {
         });
     }
 
-    // Fungsi Baru: Memuat daftar ID yang disukai dari Firebase
     private void loadWishlistData() {
         userWishlistRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 likedItemIds.clear();
                 for (DataSnapshot item : snapshot.getChildren()) {
-                    likedItemIds.add(item.getKey()); // Memasukkan ID item yang dilike
+                    likedItemIds.add(item.getKey());
                 }
-                adapter.notifyDataSetChanged(); // Refresh tampilan setelah tahu mana yang dilike
+                adapter.notifyDataSetChanged();
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
@@ -160,7 +155,10 @@ public class ExploreActivity extends AppCompatActivity {
                 for (int i = 0; i < localImages.length; i++) {
                     String id = "local_" + i;
                     if (!localPrefs.getBoolean("deleted_" + id, false)) {
-                        exploreList.add(new OwnerManageCatalogActivity.CatalogItem(id, localNames[i], localPrices[i], "res_" + localImages[i], true));
+                        // PERBAIKAN: Menggunakan modulo (%) agar array tidak pernah out of bounds
+                        String safeName = localNames[i % localNames.length];
+                        String safePrice = localPrices[i % localPrices.length];
+                        exploreList.add(new OwnerManageCatalogActivity.CatalogItem(id, safeName, safePrice, "res_" + localImages[i], true));
                     }
                 }
 
@@ -214,31 +212,31 @@ public class ExploreActivity extends AppCompatActivity {
                 }
             } else {
                 try {
-                    holder.imgNail.setImageURI(Uri.parse(item.imageUrl));
+                    // PERBAIKAN: Gunakan Glide untuk memuat URL gambar internet agar tidak crash
+                    com.bumptech.glide.Glide.with(holder.itemView.getContext())
+                            .load(item.imageUrl)
+                            .placeholder(android.R.color.darker_gray)
+                            .into(holder.imgNail);
                 } catch (Exception e) {
                     holder.imgNail.setImageResource(android.R.color.darker_gray);
                 }
             }
 
-            // CEK APAKAH ITEM INI ADA DI WISHLIST FIREBASE KITA
             boolean isLiked = likedItemIds.contains(item.id);
 
             if (isLiked) {
-                holder.btnLike.setImageResource(R.drawable.ic_heart_on); // Icon penuh (merah)
+                holder.btnLike.setImageResource(R.drawable.ic_heart_on);
                 holder.btnLike.setColorFilter(getColor(R.color.success));
             } else {
-                holder.btnLike.setImageResource(R.drawable.ic_heart_off); // Icon kosong
+                holder.btnLike.setImageResource(R.drawable.ic_heart_off);
                 holder.btnLike.setColorFilter(getColor(R.color.lavender_dark));
             }
 
-            // KLIK UNTUK MENAMBAH/MENGHAPUS DARI FIREBASE
             holder.btnLike.setOnClickListener(v -> {
                 if (isLiked) {
-                    // Hapus dari Firebase
                     userWishlistRef.child(item.id).removeValue();
                     Toast.makeText(ExploreActivity.this, "Dihapus dari Wishlist", Toast.LENGTH_SHORT).show();
                 } else {
-                    // Simpan ke Firebase (menyimpan nama, harga, dan gambar agar mudah dibaca di halaman Wishlist nanti)
                     userWishlistRef.child(item.id).child("name").setValue(item.name);
                     userWishlistRef.child(item.id).child("price").setValue(item.price);
                     userWishlistRef.child(item.id).child("imageUrl").setValue(item.imageUrl);

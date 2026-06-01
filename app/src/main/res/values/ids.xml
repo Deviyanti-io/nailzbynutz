@@ -24,4 +24,9 @@
     <item name="tv_user_points" type="id" />
     <item name="et_email" type="id" />
     <item name="btn_signup" type="id" />
+    <item name="tv_points" type="id" />
+    <item name="tv_member_tier" type="id" />
+    <item name="card_member" type="id" />
+    <item name="btn_wishlist" type="id" />
+    <item name="btn_my_bookings" type="id" />
 </resources>

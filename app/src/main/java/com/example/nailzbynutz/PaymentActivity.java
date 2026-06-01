@@ -2,9 +2,11 @@ package com.example.nailzbynutz;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.View;
 import android.widget.*;
 import androidx.activity.result.ActivityResultLauncher;
@@ -12,15 +14,15 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.database.*;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.text.NumberFormat;
 import java.util.*;
 
 public class PaymentActivity extends AppCompatActivity {
 
-    private Uri proofUri = null; // Diubah menjadi tipe Uri untuk di-upload
+    private Uri proofUri = null;
     private TextView tvProofStatus;
     private ActivityResultLauncher<String> proofPickerLauncher;
     private ProgressDialog progressDialog;
@@ -48,7 +50,7 @@ public class PaymentActivity extends AppCompatActivity {
         tvProofStatus = findViewById(R.id.tv_proof_status);
 
         progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Memproses pesanan & Mengunggah gambar...");
+        progressDialog.setMessage("Menyimpan pesanan Anda...");
         progressDialog.setCancelable(false);
 
         Locale localeID = new Locale("in", "ID");
@@ -62,7 +64,7 @@ public class PaymentActivity extends AppCompatActivity {
 
         proofPickerLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
             if (uri != null) {
-                proofUri = uri; // Simpan Uri asli untuk Firebase Storage
+                proofUri = uri;
                 tvProofStatus.setText("Gambar dipilih ✅");
                 tvProofStatus.setVisibility(View.VISIBLE);
             }
@@ -71,50 +73,46 @@ public class PaymentActivity extends AppCompatActivity {
         findViewById(R.id.btn_upload_proof).setOnClickListener(v -> proofPickerLauncher.launch("image/*"));
 
         rgPayment.setOnCheckedChangeListener((group, checkedId) -> {
-            layoutTransferInfo.setVisibility(checkedId == R.id.rb_cash ? View.GONE : View.VISIBLE);
-            btnPay.setText(checkedId == R.id.rb_cash ? "Selesaikan Booking" : "Upload Bukti & Konfirmasi");
+            boolean isCash = (checkedId == R.id.rb_cash);
+            layoutTransferInfo.setVisibility(isCash ? View.GONE : View.VISIBLE);
+            btnPay.setText(isCash ? "Selesaikan Booking" : "Upload Bukti & Konfirmasi");
         });
 
         btnPay.setOnClickListener(v -> {
-            String payStatus = (rgPayment.getCheckedRadioButtonId() == R.id.rb_cash) ? "Menunggu Pembayaran" : "Menunggu Konfirmasi";
+            boolean isCash = (rgPayment.getCheckedRadioButtonId() == R.id.rb_cash);
+            String payStatus = isCash ? "Menunggu Pembayaran" : "Menunggu Konfirmasi";
 
-            if (payStatus.equals("Menunggu Konfirmasi") && proofUri == null) {
+            if (!isCash && proofUri == null) {
                 Toast.makeText(this, "Upload bukti transfer dulu!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            progressDialog.show(); // Tampilkan loading
+            progressDialog.show();
+            String base64Proof = null;
 
-            if (proofUri != null) {
-                // JIKA ADA BUKTI TRANSFER, UPLOAD KE STORAGE DULU
-                uploadImageToStorage(intent, serviceType, payStatus);
-            } else {
-                // JIKA CASH, LANGSUNG SIMPAN KE DATABASE
-                saveToFirebaseAndFinish(intent, serviceType, payStatus, null);
+            if (!isCash && proofUri != null) {
+                base64Proof = encodeImageToBase64(proofUri);
             }
+
+            saveToFirebaseAndFinish(intent, serviceType, payStatus, base64Proof);
         });
     }
 
-    // FUNGSI MENGEMBALIKAN UPLOAD KE FIREBASE STORAGE
-    private void uploadImageToStorage(Intent intent, String serviceType, String payStatus) {
-        String fileName = "proof_" + System.currentTimeMillis() + ".jpg";
-        StorageReference storageRef = FirebaseStorage.getInstance().getReference("payment_proofs").child(fileName);
-
-        storageRef.putFile(proofUri)
-                .addOnSuccessListener(taskSnapshot -> {
-                    // Jika sukses upload, ambil URL permanennya
-                    storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                        String downloadUrl = uri.toString();
-                        saveToFirebaseAndFinish(intent, serviceType, payStatus, downloadUrl);
-                    });
-                })
-                .addOnFailureListener(e -> {
-                    progressDialog.dismiss();
-                    Toast.makeText(this, "Gagal mengunggah bukti: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
+    private String encodeImageToBase64(Uri uri) {
+        try {
+            InputStream inputStream = getContentResolver().openInputStream(uri);
+            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 30, baos);
+            byte[] imageBytes = baos.toByteArray();
+            return Base64.encodeToString(imageBytes, Base64.DEFAULT);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
-    private void saveToFirebaseAndFinish(Intent intent, String serviceType, String payStatus, String uploadedProofUrl) {
+    private void saveToFirebaseAndFinish(Intent intent, String serviceType, String payStatus, String base64ProofUrl) {
         String date = intent.getStringExtra("BOOKING_DATE");
         String time = intent.getStringExtra("BOOKING_TIME");
         if (time == null) time = "09.00";
@@ -140,13 +138,25 @@ public class PaymentActivity extends AppCompatActivity {
         data.put("length", intent.getStringExtra("LENGTH_DATA") != null ? intent.getStringExtra("LENGTH_DATA") : "-");
         data.put("colorType", intent.getStringExtra("COLOR_TYPE_DATA") != null ? intent.getStringExtra("COLOR_TYPE_DATA") : "-");
         data.put("colorHex", intent.getStringExtra("COLOR_HEX_DATA") != null ? intent.getStringExtra("COLOR_HEX_DATA") : "0");
+
+        // PERBAIKAN: Menyimpan nama warna ke database
+        data.put("colorName", intent.getStringExtra("COLOR_NAME_DATA") != null ? intent.getStringExtra("COLOR_NAME_DATA") : "");
+
         data.put("finish", intent.getStringExtra("FINISH_DATA") != null ? intent.getStringExtra("FINISH_DATA") : "-");
         data.put("sizeReport", intent.getStringExtra("SIZE_DATA") != null ? intent.getStringExtra("SIZE_DATA") : "-");
         data.put("notes", intent.getStringExtra("NOTES_DATA") != null ? intent.getStringExtra("NOTES_DATA") : "-");
 
+        // PERBAIKAN: Menyimpan Addon + Quantity (Contoh: "Pearls (x2)")
+        HashMap<String, Integer> addonCounts = (HashMap<String, Integer>) intent.getSerializableExtra("ADDON_COUNTS_DATA");
         ArrayList<String> addons = intent.getStringArrayListExtra("ADDONS_DATA");
+        ArrayList<String> formattedAddons = new ArrayList<>();
+
         if (addons != null && !addons.isEmpty()) {
-            data.put("addons", addons);
+            for (String addon : addons) {
+                int qty = (addonCounts != null && addonCounts.containsKey(addon)) ? addonCounts.get(addon) : 1;
+                formattedAddons.add(addon + " (x" + qty + ")");
+            }
+            data.put("addons", formattedAddons);
         } else {
             data.put("addons", new ArrayList<String>());
         }
@@ -154,8 +164,7 @@ public class PaymentActivity extends AppCompatActivity {
         String uploadedRefImage = intent.getStringExtra("UPLOADED_IMAGE_DATA");
         if (uploadedRefImage != null) data.put("referenceImage", uploadedRefImage);
 
-        // Simpan Link URL gambar yang sudah di-upload tadi
-        if (uploadedProofUrl != null) data.put("paymentProof", uploadedProofUrl);
+        if (base64ProofUrl != null) data.put("paymentProof", base64ProofUrl);
 
         FirebaseDatabase.getInstance("https://nailzbynutz-default-rtdb.asia-southeast1.firebasedatabase.app").getReference("bookings")
                 .push().setValue(data).addOnSuccessListener(aVoid -> {

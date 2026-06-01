@@ -1,10 +1,12 @@
 package com.example.nailzbynutz;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
-import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -41,6 +43,12 @@ public class CustomNailReviewActivity extends AppCompatActivity {
         if (serviceType == null) serviceType = "Custom Nails";
         HashMap<String, Integer> addonCounts = (HashMap<String, Integer>) intent.getSerializableExtra("ADDON_COUNTS_DATA");
 
+        if ("Gel Nails".equals(serviceType)) {
+            shape = "Standard";
+            length = "Standard";
+            size = "Standar (Gel Polish)";
+        }
+
         TextView tvShape = findViewById(R.id.tv_review_shape);
         TextView tvLength = findViewById(R.id.tv_review_length);
         TextView tvColor = findViewById(R.id.tv_review_color);
@@ -53,7 +61,6 @@ public class CustomNailReviewActivity extends AppCompatActivity {
         TextView tvImageTitle = findViewById(R.id.tv_image_title);
         TextView tvGrandTotal = findViewById(R.id.tv_review_grand_total);
 
-        // KALKULASI HARGA
         int basePrice = serviceType.equals("Gel Nails") ? 60000 : (serviceType.equals("Manicure") ? 45000 : 80000);
         int addonPrice = 0;
 
@@ -93,16 +100,19 @@ public class CustomNailReviewActivity extends AppCompatActivity {
             colorPreview.setBackground(gd);
         }
 
-        // Tampilkan Gambar (Diperbarui dengan Glide untuk baca URL dari Firebase)
+        // FUNGSI BARU: Decode string Base64 kembali menjadi gambar
         if (uploadedImage != null && !uploadedImage.isEmpty()) {
             tvImageTitle.setVisibility(View.VISIBLE);
             ivReviewImage.setVisibility(View.VISIBLE);
-
-            com.bumptech.glide.Glide.with(this)
-                    .load(uploadedImage)
-                    .placeholder(android.R.drawable.ic_menu_gallery) // Gambar loading sementara
-                    .into(ivReviewImage);
+            try {
+                byte[] decodedString = Base64.decode(uploadedImage, Base64.DEFAULT);
+                Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                ivReviewImage.setImageBitmap(decodedByte);
+            } catch (Exception e) {
+                ivReviewImage.setImageResource(android.R.drawable.ic_menu_gallery);
+            }
         }
+
         Locale localeID = new Locale("in", "ID");
         tvGrandTotal.setText(NumberFormat.getCurrencyInstance(localeID).format(grandTotal));
 

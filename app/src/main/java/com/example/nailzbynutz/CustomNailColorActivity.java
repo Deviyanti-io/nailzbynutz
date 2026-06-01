@@ -3,10 +3,13 @@ package com.example.nailzbynutz;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.View;
 import android.widget.Button;
 import android.widget.GridLayout;
@@ -18,9 +21,8 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -31,8 +33,6 @@ public class CustomNailColorActivity extends AppCompatActivity {
     private String selectedColorName = null;
     private String selectedColorType = "Solid";
     private String selectedFinish = "Glossy";
-
-    // PERBAIKAN: Menggunakan Uri untuk disiapkan ke Firebase Storage
     private Uri uploadedImageUri = null;
 
     private HashMap<String, Integer> addonCounts = new HashMap<>();
@@ -45,16 +45,15 @@ public class CustomNailColorActivity extends AppCompatActivity {
     private boolean fromGelPolish;
 
     private ActivityResultLauncher<String> imagePickerLauncher;
-    private ProgressDialog progressDialog; // Tambahkan loading dialog
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom_nail_color);
 
-        // Siapkan Loading Dialog
         progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Menyiapkan desain & Mengunggah foto...");
+        progressDialog.setMessage("Menyiapkan desain...");
         progressDialog.setCancelable(false);
 
         selectedShape = getIntent().getStringExtra("SHAPE_DATA");
@@ -94,7 +93,7 @@ public class CustomNailColorActivity extends AppCompatActivity {
                 new ActivityResultContracts.GetContent(),
                 uri -> {
                     if (uri != null) {
-                        uploadedImageUri = uri; // Simpan Uri untuk Firebase
+                        uploadedImageUri = uri;
                         tvUploadStatus.setText("Foto referensi berhasil dipilih ✅");
                         tvUploadStatus.setVisibility(View.VISIBLE);
                     } else {
@@ -177,36 +176,34 @@ public class CustomNailColorActivity extends AppCompatActivity {
                 return;
             }
 
-            // PERBAIKAN: Jika ada foto, upload dulu. Jika tidak, langsung lanjut.
+            progressDialog.show();
             if (uploadedImageUri != null) {
-                uploadReferenceImageAndProceed();
+                String base64Image = encodeImageToBase64(uploadedImageUri);
+                proceedToNextActivity(base64Image);
             } else {
                 proceedToNextActivity(null);
             }
         });
     }
 
-    // FUNGSI BARU: Upload gambar ke Firebase Storage sebelum pindah halaman
-    private void uploadReferenceImageAndProceed() {
-        progressDialog.show();
-        String fileName = "ref_" + System.currentTimeMillis() + ".jpg";
-        StorageReference storageRef = FirebaseStorage.getInstance().getReference("reference_images").child(fileName);
-
-        storageRef.putFile(uploadedImageUri)
-                .addOnSuccessListener(taskSnapshot -> {
-                    storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                        progressDialog.dismiss();
-                        proceedToNextActivity(uri.toString()); // Lanjut bawa URL internet
-                    });
-                })
-                .addOnFailureListener(e -> {
-                    progressDialog.dismiss();
-                    Toast.makeText(this, "Gagal mengunggah foto: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
+    // FUNGSI BARU: Mengubah Gambar ke Base64 (Teks)
+    private String encodeImageToBase64(Uri uri) {
+        try {
+            InputStream inputStream = getContentResolver().openInputStream(uri);
+            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            // Kompres gambar 30% agar database tidak penuh
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 30, baos);
+            byte[] imageBytes = baos.toByteArray();
+            return Base64.encodeToString(imageBytes, Base64.DEFAULT);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
-    // FUNGSI BARU: Memisahkan logika pindah halaman agar rapi
-    private void proceedToNextActivity(String uploadedUrl) {
+    private void proceedToNextActivity(String base64Image) {
+        progressDialog.dismiss();
         Intent intent;
         if (fromGelPolish) {
             intent = new Intent(CustomNailColorActivity.this, CustomNailReviewActivity.class);
@@ -225,9 +222,8 @@ public class CustomNailColorActivity extends AppCompatActivity {
         intent.putExtra("COLOR_NAME_DATA", selectedColorName);
         intent.putExtra("FINISH_DATA", selectedFinish);
 
-        if (uploadedUrl != null) {
-            intent.putExtra("UPLOADED_IMAGE_DATA", uploadedUrl);
-            // Izin lokal dihapus karena ini sudah berupa URL Internet
+        if (base64Image != null) {
+            intent.putExtra("UPLOADED_IMAGE_DATA", base64Image);
         }
 
         ArrayList<String> activeAddons = new ArrayList<>();

@@ -4,11 +4,12 @@ import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.graphics.drawable.GradientDrawable;
-import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -90,25 +91,27 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
 
     private void switchTab(TextView activeTab, String targetStatus) {
         try {
+            // Ubah warna teks tab yang tidak aktif menjadi abu-abu kebiruan
             if (tabUpcoming != null) {
                 tabUpcoming.setBackgroundResource(0);
                 tabUpcoming.setBackgroundTintList(null);
-                tabUpcoming.setTextColor(Color.parseColor("#9E9CC8"));
+                tabUpcoming.setTextColor(Color.parseColor("#A0B0C0"));
             }
             if (tabComplete != null) {
                 tabComplete.setBackgroundResource(0);
                 tabComplete.setBackgroundTintList(null);
-                tabComplete.setTextColor(Color.parseColor("#9E9CC8"));
+                tabComplete.setTextColor(Color.parseColor("#A0B0C0"));
             }
             if (tabCancel != null) {
                 tabCancel.setBackgroundResource(0);
                 tabCancel.setBackgroundTintList(null);
-                tabCancel.setTextColor(Color.parseColor("#9E9CC8"));
+                tabCancel.setTextColor(Color.parseColor("#A0B0C0"));
             }
 
+            // Ubah warna tab aktif menjadi BIRU
             if (activeTab != null) {
                 activeTab.setBackgroundResource(R.drawable.bg_card_rounded);
-                activeTab.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#4A3B69")));
+                activeTab.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#3F51B5")));
                 activeTab.setTextColor(Color.WHITE);
             }
 
@@ -172,14 +175,15 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
         });
     }
 
-    // FUNGSI LOAD IMAGE YANG DIPERBARUI UNTUK MEMBACA URL INTERNET DENGAN GLIDE
-    private void loadSafeImage(ImageView iv, String uriString) {
-        if (uriString != null && !uriString.isEmpty() && !uriString.equals("null")) {
-            com.bumptech.glide.Glide.with(this)
-                    .load(uriString)
-                    .placeholder(android.R.drawable.ic_menu_gallery) // Gambar abu-abu saat masih loading
-                    .error(android.R.drawable.ic_menu_gallery) // Gambar abu-abu jika gagal/sinyal putus
-                    .into(iv);
+    private void loadSafeImage(ImageView iv, String base64String) {
+        if (base64String != null && !base64String.isEmpty() && !base64String.equals("null")) {
+            try {
+                byte[] decodedString = Base64.decode(base64String, Base64.DEFAULT);
+                Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                iv.setImageBitmap(decodedByte);
+            } catch (Exception e) {
+                iv.setImageResource(android.R.drawable.ic_menu_gallery);
+            }
         } else {
             iv.setImageResource(android.R.drawable.ic_menu_gallery);
         }
@@ -239,7 +243,8 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
             tvStatusText.setText(status);
             tvStatusText.setTypeface(poppinsBold);
             tvStatusText.setTextSize(12);
-            if (status.equalsIgnoreCase("Confirmed") || status.equalsIgnoreCase("Upcoming")) tvStatusText.setTextColor(Color.parseColor("#4A3B69"));
+            // Ganti warna status Confirmed menjadi BIRU
+            if (status.equalsIgnoreCase("Confirmed") || status.equalsIgnoreCase("Upcoming")) tvStatusText.setTextColor(Color.parseColor("#3F51B5"));
             else if (status.equalsIgnoreCase("Completed")) tvStatusText.setTextColor(Color.parseColor("#4CAF50"));
             else tvStatusText.setTextColor(Color.parseColor("#D6001C"));
             statusRow.addView(tvStatusText);
@@ -262,14 +267,16 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
             tvMethodText.setText(metodePembayaran);
             tvMethodText.setTypeface(poppinsBold);
             tvMethodText.setTextSize(12);
-            tvMethodText.setTextColor(Color.parseColor("#4A3B69"));
+            // Ganti warna metode pembayaran menjadi BIRU
+            tvMethodText.setTextColor(Color.parseColor("#3F51B5"));
             statusRow.addView(tvMethodText);
 
             mainLayout.addView(statusRow);
 
             TextView btnToggle = new TextView(this);
-            btnToggle.setText("Tutup Detail ▲");
-            btnToggle.setTextColor(Color.parseColor("#4A3B69"));
+            btnToggle.setText("Lihat Detail ▼");
+            // Ganti warna tombol tutup/lihat detail menjadi BIRU
+            btnToggle.setTextColor(Color.parseColor("#3F51B5"));
             btnToggle.setTypeface(poppinsBold);
             btnToggle.setPadding(0, 16, 0, 0);
             mainLayout.addView(btnToggle);
@@ -277,6 +284,7 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
             LinearLayout detailLayout = new LinearLayout(this);
             detailLayout.setOrientation(LinearLayout.VERTICAL);
             detailLayout.setPadding(0, 16, 0, 0);
+            detailLayout.setVisibility(View.GONE);
 
             View divider = new View(this);
             divider.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2));
@@ -287,9 +295,16 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
             String length = String.valueOf(data.child("length").getValue());
             String colorType = String.valueOf(data.child("colorType").getValue());
             String hex = String.valueOf(data.child("colorHex").getValue());
+            String colorName = String.valueOf(data.child("colorName").getValue());
             String finish = String.valueOf(data.child("finish").getValue());
             String sizeReport = String.valueOf(data.child("sizeReport").getValue());
             String notes = String.valueOf(data.child("notes").getValue());
+
+            String colorDisplay = (!colorType.equals("null") ? colorType : "-");
+            if (!colorName.equals("null") && !colorName.isEmpty()) {
+                colorDisplay += " - " + colorName;
+            }
+            colorDisplay += " (" + (!hex.equals("null") ? hex : "") + ")";
 
             StringBuilder addonsStr = new StringBuilder();
             if (data.hasChild("addons")) {
@@ -303,7 +318,7 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
             String htmlFormat =
                     "<font color='#808080'>Nail Shape</font><br><b>" + (!shape.equals("null") ? shape : "-") + "</b><br><br>" +
                             "<font color='#808080'>Nail Length</font><br><b>" + (!length.equals("null") ? length : "-") + "</b><br><br>" +
-                            "<font color='#808080'>Color Type & Hex</font><br><b>" + (!colorType.equals("null") ? colorType : "-") + " (" + (!hex.equals("null") ? hex : "") + ")</b><br><br>" +
+                            "<font color='#808080'>Color Type & Hex</font><br><b>" + colorDisplay + "</b><br><br>" +
                             "<font color='#808080'>Finishing Coat</font><br><b>" + (!finish.equals("null") ? finish : "-") + "</b><br><br>" +
                             "<font color='#808080'>Selected Add-ons</font><br><b>" + addonsStr.toString() + "</b><br>" +
                             "<font color='#808080'>Nail Size Specification</font><br><b>" + (!sizeReport.equals("null") ? sizeReport : "-") + "</b><br><br>" +
@@ -359,10 +374,9 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
                 btnParams.setMargins(0, 0, 0, 16);
                 btnTerima.setLayoutParams(btnParams);
                 btnTerima.setPadding(0, 32, 0, 32);
-                GradientDrawable bgTerima = new GradientDrawable();
-                bgTerima.setColor(Color.parseColor("#F57F17"));
-                bgTerima.setCornerRadius(24);
-                btnTerima.setBackground(bgTerima);
+
+                // Menggunakan background tombol standar aplikasi (Biru)
+                btnTerima.setBackgroundResource(R.drawable.bg_button_rounded);
 
                 btnTerima.setOnClickListener(v -> {
                     bookingsRef.child(bookingId).child("paymentStatus").setValue("Lunas");
@@ -379,17 +393,16 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
                 TextView btnComplete = new TextView(this);
                 btnComplete.setText("Selesaikan");
                 btnComplete.setGravity(Gravity.CENTER);
-                btnComplete.setTextColor(Color.parseColor("#4A3B69"));
+                btnComplete.setTextColor(Color.WHITE);
                 btnComplete.setTypeface(poppinsBold);
                 btnComplete.setTextSize(14);
                 LinearLayout.LayoutParams completeParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
                 completeParams.setMargins(0, 0, 8, 0);
                 btnComplete.setLayoutParams(completeParams);
                 btnComplete.setPadding(0, 32, 0, 32);
-                GradientDrawable bgComplete = new GradientDrawable();
-                bgComplete.setColor(Color.parseColor("#EEF0FA"));
-                bgComplete.setCornerRadius(24);
-                btnComplete.setBackground(bgComplete);
+
+                // MENGGUNAKAN TOMBOL BIRU STANDAR
+                btnComplete.setBackgroundResource(R.drawable.bg_button_rounded);
 
                 String finalCustomerName = customerName;
                 btnComplete.setOnClickListener(v -> {
@@ -412,20 +425,22 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
                     Toast.makeText(OwnerManageBookingActivity.this, "Selesai! +50 Poin dikirim ke Pelanggan", Toast.LENGTH_LONG).show();
                 });
 
+                // Tombol Batalkan (Tetap Merah untuk penanda bahaya/batal)
                 TextView btnCancel = new TextView(this);
                 btnCancel.setText("Batalkan");
                 btnCancel.setGravity(Gravity.CENTER);
-                btnCancel.setTextColor(Color.parseColor("#D6001C"));
+                btnCancel.setTextColor(Color.WHITE);
                 btnCancel.setTypeface(poppinsBold);
                 btnCancel.setTextSize(14);
                 LinearLayout.LayoutParams cancelParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
                 cancelParams.setMargins(8, 0, 0, 0);
                 btnCancel.setLayoutParams(cancelParams);
                 btnCancel.setPadding(0, 32, 0, 32);
-                GradientDrawable bgCancel = new GradientDrawable();
-                bgCancel.setColor(Color.parseColor("#FCE8E6"));
-                bgCancel.setCornerRadius(24);
+                android.graphics.drawable.GradientDrawable bgCancel = new android.graphics.drawable.GradientDrawable();
+                bgCancel.setColor(Color.parseColor("#E53935")); // Merah
+                bgCancel.setCornerRadius(24); // Agar melengkung
                 btnCancel.setBackground(bgCancel);
+
                 btnCancel.setOnClickListener(v -> updateBookingStatus(bookingId, "Canceled"));
 
                 actionRow.addView(btnComplete);
@@ -454,13 +469,13 @@ public class OwnerManageBookingActivity extends AppCompatActivity {
         }
     }
 
-    private void showImagePopup(String uri, String title) {
+    private void showImagePopup(String base64String, String title) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         ImageView iv = new ImageView(this);
         iv.setPadding(16, 16, 16, 16);
         iv.setAdjustViewBounds(true);
 
-        loadSafeImage(iv, uri); // Memanggil Glide untuk menaruh gambar di popup
+        loadSafeImage(iv, base64String);
 
         builder.setTitle(title).setView(iv).setPositiveButton("Tutup", null).show();
     }
