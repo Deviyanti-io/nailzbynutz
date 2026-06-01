@@ -29,4 +29,6 @@
     <item name="card_member" type="id" />
     <item name="btn_wishlist" type="id" />
     <item name="btn_my_bookings" type="id" />
+    <item name="btn_settings" type="id" />
+    <item name="btn_payment_info" type="id" />
 </resources>
