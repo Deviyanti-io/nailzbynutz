@@ -2,6 +2,7 @@ package com.example.nailzbynutz;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,25 +11,23 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.firebase.database.DatabaseReference;
+
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 
 public class WishlistAdapter extends RecyclerView.Adapter<WishlistAdapter.ViewHolder> {
 
     private Context context;
-    private List<NailModel> wishlistItems;
-    private OnItemRemovedListener onItemRemovedListener;
+    private List<WishlistItem> wishlistItems;
+    private DatabaseReference userWishlistRef; // Digunakan untuk menghapus data di server
 
-    public interface OnItemRemovedListener {
-        void onItemRemoved(int newSize);
-    }
-
-    public void setOnItemRemovedListener(OnItemRemovedListener listener) {
-        this.onItemRemovedListener = listener;
-    }
-
-    public WishlistAdapter(Context context, List<NailModel> wishlistItems) {
+    public WishlistAdapter(Context context, List<WishlistItem> wishlistItems, DatabaseReference userWishlistRef) {
         this.context = context;
         this.wishlistItems = wishlistItems;
+        this.userWishlistRef = userWishlistRef;
     }
 
     @NonNull
@@ -40,30 +39,48 @@ public class WishlistAdapter extends RecyclerView.Adapter<WishlistAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        NailModel nail = wishlistItems.get(position);
-        holder.tvName.setText(nail.getName());
-        holder.tvPrice.setText(nail.getPrice());
-        holder.ivImage.setImageResource(nail.getImageResId());
+        WishlistItem item = wishlistItems.get(position);
+
+        holder.tvName.setText(item.name);
         holder.ivHeart.setImageResource(R.drawable.ic_heart_on);
 
-        // Tombol hapus dari wishlist
-        holder.ivHeart.setOnClickListener(v -> {
-            nail.setFavorite(false);
-            wishlistItems.remove(position);
-            NailModel.globalWishlist.remove(nail);
-            notifyItemRemoved(position);
-            notifyItemRangeChanged(position, wishlistItems.size());
-            Toast.makeText(context, nail.getName() + " dihapus dari Wishlist", Toast.LENGTH_SHORT).show();
-            if (onItemRemovedListener != null) {
-                onItemRemovedListener.onItemRemoved(wishlistItems.size());
+        // Format Harga ke Rupiah
+        Locale localeID = new Locale("in", "ID");
+        NumberFormat formatRupiah = NumberFormat.getCurrencyInstance(localeID);
+        formatRupiah.setMaximumFractionDigits(0);
+        try {
+            holder.tvPrice.setText(formatRupiah.format(Integer.parseInt(item.price)));
+        } catch (Exception e) {
+            holder.tvPrice.setText("Rp " + item.price);
+        }
+
+        // Tampilkan Gambar (baik dari drawable lokal maupun URL galeri/Firebase)
+        if (item.isLocal || (item.imageUrl != null && item.imageUrl.startsWith("res_"))) {
+            try {
+                int resId = Integer.parseInt(item.imageUrl.replace("res_", ""));
+                holder.ivImage.setImageResource(resId);
+            } catch (Exception e) {
+                holder.ivImage.setImageResource(android.R.color.darker_gray);
             }
+        } else {
+            try {
+                holder.ivImage.setImageURI(Uri.parse(item.imageUrl));
+            } catch (Exception e) {
+                holder.ivImage.setImageResource(android.R.color.darker_gray);
+            }
+        }
+
+        // AKSI: Saat ikon Love diklik untuk menghapus dari Wishlist
+        holder.ivHeart.setOnClickListener(v -> {
+            // Hapus data langsung dari server Firebase!
+            userWishlistRef.child(item.id).removeValue();
+            Toast.makeText(context, item.name + " dihapus dari Wishlist", Toast.LENGTH_SHORT).show();
         });
 
-        // Klik item -> pindah ke CustomNailShapeActivity
+        // AKSI: Saat item diklik, lanjutkan ke pemilihan bentuk kuku
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, CustomNailShapeActivity.class);
-            intent.putExtra("PRODUCT_NAME", nail.getName());
-            // Tidak ada flag aneh, start activity biasa
+            intent.putExtra("PRODUCT_NAME", item.name);
             context.startActivity(intent);
         });
     }

@@ -7,11 +7,7 @@ import android.widget.CalendarView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.*;
 import java.util.HashMap;
 
 public class BookingAppointmentActivity extends AppCompatActivity {
@@ -60,7 +56,7 @@ public class BookingAppointmentActivity extends AppCompatActivity {
 
             Intent intent = new Intent(BookingAppointmentActivity.this, PaymentActivity.class);
             if (getIntent().getExtras() != null) {
-                intent.putExtras(getIntent().getExtras()); // Mencegah data hilang dan Null
+                intent.putExtras(getIntent().getExtras());
             }
             intent.putExtra("BOOKING_DATE", selectedDate);
             intent.putExtra("BOOKING_TIME", selectedTime);
@@ -71,9 +67,12 @@ public class BookingAppointmentActivity extends AppCompatActivity {
     private void checkQuotaForDate(String targetDate) {
         selectedTime = "";
         HashMap<String, Integer> timeSlotCounts = new HashMap<>();
-        timeSlotCounts.put("09.00", 0); timeSlotCounts.put("11.00", 0);
-        timeSlotCounts.put("13.00", 0); timeSlotCounts.put("14.00", 0);
-        timeSlotCounts.put("15.00", 0); timeSlotCounts.put("17.00", 0);
+        timeSlotCounts.put("09.00", 0);
+        timeSlotCounts.put("11.00", 0);
+        timeSlotCounts.put("13.00", 0);
+        timeSlotCounts.put("14.00", 0);
+        timeSlotCounts.put("15.00", 0);
+        timeSlotCounts.put("17.00", 0);
 
         bookingsRef.orderByChild("date").equalTo(targetDate).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -96,20 +95,24 @@ public class BookingAppointmentActivity extends AppCompatActivity {
                 updateButtonQuota(btnTime15, timeSlotCounts.get("15.00"), "15.00");
                 updateButtonQuota(btnTime17, timeSlotCounts.get("17.00"), "17.00");
             }
+
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
+            public void onCancelled(@NonNull DatabaseError error) {
+            }
         });
     }
 
     private void updateButtonQuota(Button btn, int count, String timeStr) {
         if (count >= 5) {
-            btn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#D6001C")));
-            btn.setTextColor(android.graphics.Color.WHITE);
             btn.setEnabled(false);
             btn.setText(timeStr + "\n(Full)");
+            // Paksa warna merah pekat dan teks putih
+            btn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#D6001C")));
+            btn.setTextColor(android.graphics.Color.WHITE);
         } else {
             btn.setEnabled(true);
             btn.setText(timeStr);
+            // Kembalikan ke warna asli
             btn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.background_card)));
             btn.setTextColor(getColor(R.color.text_primary));
         }
@@ -120,13 +123,15 @@ public class BookingAppointmentActivity extends AppCompatActivity {
             selectedTime = time;
             Button[] btns = {btnTime09, btnTime11, btnTime13, btnTime14, btnTime15, btnTime17};
             for (Button b : btns) {
+                // KUNCI PERBAIKAN: Hanya kembalikan warna tombol jika tombol itu TIDAK FULL (masih aktif)
                 if (b.isEnabled()) {
                     b.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.background_card)));
                     b.setTextColor(getColor(R.color.text_primary));
                 }
             }
+            // Warnai ungu tombol yang baru saja dipilih
             btn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.lavender_dark)));
-            btn.setTextColor(getColor(R.color.white));
+            btn.setTextColor(android.graphics.Color.WHITE);
         });
     }
 }

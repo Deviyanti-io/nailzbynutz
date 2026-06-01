@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Izin untuk akses foto (PENTING) -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
     <application
         android:allowBackup="true"
@@ -12,17 +16,13 @@
         android:theme="@style/Theme.Nailzbynutz"
         tools:targetApi="31">
 
-        <!-- 1. GERBANG UTAMA: Menjalankan SplashActivity saat aplikasi dibuka -->
-        <activity
-            android:name=".SplashActivity"
-            android:exported="true">
+        <activity android:name=".SplashActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- 2. REGISTRASI SEMUA ACTIVITY INTERNAL (Sesuai Struktur Proyek Proyekmu) -->
         <activity android:name=".LoginActivity" />
         <activity android:name=".SignUpActivity" />
         <activity android:name=".MainNavigationActivity" />
@@ -39,12 +39,13 @@
         <activity android:name=".BookingAppointmentActivity" />
         <activity android:name=".EditProfileActivity" />
         <activity android:name=".SettingActivity" />
-        <activity android:name=".PaymentActivity" android:exported="false" />
-        <activity android:name=".OwnerDashboardActivity" android:exported="false" />
-        <activity android:name=".OwnerManageBookingActivity" android:exported="false" />
-        <activity android:name=".OwnerManageCatalogActivity" android:exported="false" />
-        <activity android:name=".PaymentInfoActivity" android:exported="false" />
-        <activity android:name=".AddEditCatalogActivity" android:exported="false" />
+        <!-- Pastikan semua aktivitas ini ada di sini -->
+        <activity android:name=".PaymentActivity" />
+        <activity android:name=".OwnerDashboardActivity" />
+        <activity android:name=".OwnerManageBookingActivity" />
+        <activity android:name=".OwnerManageCatalogActivity" />
+        <activity android:name=".PaymentInfoActivity" />
+        <activity android:name=".AddEditCatalogActivity" />
 
     </application>
 </manifest>

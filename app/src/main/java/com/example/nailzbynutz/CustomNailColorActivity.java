@@ -1,14 +1,15 @@
 package com.example.nailzbynutz;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.GridLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,6 +17,9 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,7 +31,9 @@ public class CustomNailColorActivity extends AppCompatActivity {
     private String selectedColorName = null;
     private String selectedColorType = "Solid";
     private String selectedFinish = "Glossy";
-    private String uploadedImagePath = null;
+
+    // PERBAIKAN: Menggunakan Uri untuk disiapkan ke Firebase Storage
+    private Uri uploadedImageUri = null;
 
     private HashMap<String, Integer> addonCounts = new HashMap<>();
 
@@ -39,11 +45,17 @@ public class CustomNailColorActivity extends AppCompatActivity {
     private boolean fromGelPolish;
 
     private ActivityResultLauncher<String> imagePickerLauncher;
+    private ProgressDialog progressDialog; // Tambahkan loading dialog
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom_nail_color);
+
+        // Siapkan Loading Dialog
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Menyiapkan desain & Mengunggah foto...");
+        progressDialog.setCancelable(false);
 
         selectedShape = getIntent().getStringExtra("SHAPE_DATA");
         selectedLength = getIntent().getStringExtra("LENGTH_DATA");
@@ -82,7 +94,7 @@ public class CustomNailColorActivity extends AppCompatActivity {
                 new ActivityResultContracts.GetContent(),
                 uri -> {
                     if (uri != null) {
-                        uploadedImagePath = uri.toString();
+                        uploadedImageUri = uri; // Simpan Uri untuk Firebase
                         tvUploadStatus.setText("Foto referensi berhasil dipilih ✅");
                         tvUploadStatus.setVisibility(View.VISIBLE);
                     } else {
@@ -165,40 +177,67 @@ public class CustomNailColorActivity extends AppCompatActivity {
                 return;
             }
 
-            Intent intent;
-            if (fromGelPolish) {
-                // Gel Polish langsung ke Review
-                intent = new Intent(CustomNailColorActivity.this, CustomNailReviewActivity.class);
-                intent.putExtra("SERVICE_TYPE", "Gel Nails");
-                intent.putExtra("SIZE_DATA", "Standar (Gel Polish)");
-                intent.putExtra("NOTES_DATA", "Tidak ada catatan khusus");
+            // PERBAIKAN: Jika ada foto, upload dulu. Jika tidak, langsung lanjut.
+            if (uploadedImageUri != null) {
+                uploadReferenceImageAndProceed();
             } else {
-                // Custom Nails ke Details
-                intent = new Intent(CustomNailColorActivity.this, CustomNailDetailsActivity.class);
-                intent.putExtra("SERVICE_TYPE", "Custom Nails");
+                proceedToNextActivity(null);
             }
-
-            intent.putExtra("SHAPE_DATA", selectedShape);
-            intent.putExtra("LENGTH_DATA", selectedLength);
-            intent.putExtra("COLOR_TYPE_DATA", selectedColorType);
-            intent.putExtra("COLOR_HEX_DATA", selectedColorHex);
-            intent.putExtra("COLOR_NAME_DATA", selectedColorName);
-            intent.putExtra("FINISH_DATA", selectedFinish);
-
-            if (uploadedImagePath != null) {
-                intent.putExtra("UPLOADED_IMAGE_DATA", uploadedImagePath);
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            }
-
-            ArrayList<String> activeAddons = new ArrayList<>();
-            for (String key : addonCounts.keySet()) {
-                if (addonCounts.get(key) != null && addonCounts.get(key) > 0) activeAddons.add(key);
-            }
-            intent.putStringArrayListExtra("ADDONS_DATA", activeAddons);
-            intent.putExtra("ADDON_COUNTS_DATA", addonCounts);
-
-            startActivity(intent);
         });
+    }
+
+    // FUNGSI BARU: Upload gambar ke Firebase Storage sebelum pindah halaman
+    private void uploadReferenceImageAndProceed() {
+        progressDialog.show();
+        String fileName = "ref_" + System.currentTimeMillis() + ".jpg";
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference("reference_images").child(fileName);
+
+        storageRef.putFile(uploadedImageUri)
+                .addOnSuccessListener(taskSnapshot -> {
+                    storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                        progressDialog.dismiss();
+                        proceedToNextActivity(uri.toString()); // Lanjut bawa URL internet
+                    });
+                })
+                .addOnFailureListener(e -> {
+                    progressDialog.dismiss();
+                    Toast.makeText(this, "Gagal mengunggah foto: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
+    }
+
+    // FUNGSI BARU: Memisahkan logika pindah halaman agar rapi
+    private void proceedToNextActivity(String uploadedUrl) {
+        Intent intent;
+        if (fromGelPolish) {
+            intent = new Intent(CustomNailColorActivity.this, CustomNailReviewActivity.class);
+            intent.putExtra("SERVICE_TYPE", "Gel Nails");
+            intent.putExtra("SIZE_DATA", "Standar (Gel Polish)");
+            intent.putExtra("NOTES_DATA", "Tidak ada catatan khusus");
+        } else {
+            intent = new Intent(CustomNailColorActivity.this, CustomNailDetailsActivity.class);
+            intent.putExtra("SERVICE_TYPE", "Custom Nails");
+        }
+
+        intent.putExtra("SHAPE_DATA", selectedShape);
+        intent.putExtra("LENGTH_DATA", selectedLength);
+        intent.putExtra("COLOR_TYPE_DATA", selectedColorType);
+        intent.putExtra("COLOR_HEX_DATA", selectedColorHex);
+        intent.putExtra("COLOR_NAME_DATA", selectedColorName);
+        intent.putExtra("FINISH_DATA", selectedFinish);
+
+        if (uploadedUrl != null) {
+            intent.putExtra("UPLOADED_IMAGE_DATA", uploadedUrl);
+            // Izin lokal dihapus karena ini sudah berupa URL Internet
+        }
+
+        ArrayList<String> activeAddons = new ArrayList<>();
+        for (String key : addonCounts.keySet()) {
+            if (addonCounts.get(key) != null && addonCounts.get(key) > 0) activeAddons.add(key);
+        }
+        intent.putStringArrayListExtra("ADDONS_DATA", activeAddons);
+        intent.putExtra("ADDON_COUNTS_DATA", addonCounts);
+
+        startActivity(intent);
     }
 
     private void setupAddonItem(String name, int tvQtyId, int btnMinId, int btnAddId) {

@@ -9,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -155,6 +154,12 @@ public class OwnerManageCatalogActivity extends AppCompatActivity {
                     holder.imgNail.setImageResource(android.R.color.darker_gray);
                 }
             }
+
+            // KEMBALIKAN ESTETIKA TOMBOL (HILANGKAN BIRU)
+            holder.btnEdit.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+            holder.btnEdit.setTextColor(android.graphics.Color.parseColor("#333333"));
+            holder.btnDelete.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+            holder.btnDelete.setTextColor(android.graphics.Color.parseColor("#D6001C"));
 
             holder.btnEdit.setOnClickListener(v -> {
                 Intent intent = new Intent(activity, AddEditCatalogActivity.class);

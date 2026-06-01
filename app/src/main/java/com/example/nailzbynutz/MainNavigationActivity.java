@@ -7,15 +7,22 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+// Import Firebase
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 public class MainNavigationActivity extends AppCompatActivity {
 
     private ScrollView layoutHomePage;
-    private TextView tvWelcomeUser;
+    private TextView tvWelcomeUser, tvUserPoints; // Dideklarasikan saja di sini
     private CardView menuGelNail, menuPressOnNail, menuManicure;
     private BottomNavigationView bottomNav;
     private String currentUsername = "Guest";
@@ -34,33 +41,44 @@ public class MainNavigationActivity extends AppCompatActivity {
             currentUsername = session.getString("USER_NAME", "Guest");
         }
 
-        // SESUAI KODE ASLI KAMU: Inisialisasi komponen layout berdasarkan ID aslinya
+        // Inisialisasi (findViewById) HARUS dilakukan di sini, di dalam onCreate
         layoutHomePage = findViewById(R.id.layout_home_page);
         tvWelcomeUser = findViewById(R.id.tv_welcome_user);
+        tvUserPoints = findViewById(R.id.tv_user_points);
         menuGelNail = findViewById(R.id.menu_gel_nail);
         menuPressOnNail = findViewById(R.id.menu_press_on_nail);
         menuManicure = findViewById(R.id.menu_manicure);
         bottomNav = findViewById(R.id.bottom_navigation);
 
-        // Set teks sambutan nama user
-        tvWelcomeUser.setText("Hi, " + currentUsername + "! 👋");
+        // Menarik Data Nama & Poin secara Real-Time dari Firebase
+        DatabaseReference usersRef = FirebaseDatabase.getInstance("https://nailzbynutz-default-rtdb.asia-southeast1.firebasedatabase.app").getReference("users");
+        usersRef.orderByChild("username").equalTo(currentUsername).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    for (DataSnapshot userSnap : snapshot.getChildren()) {
+                        String name = userSnap.child("username").getValue(String.class);
+                        Integer dbPoints = userSnap.child("points").getValue(Integer.class);
+                        int points = (dbPoints != null) ? dbPoints : 0;
 
-        // SESUAI KODE ASLI KAMU: Klik menu layanan kuku
-        menuPressOnNail.setOnClickListener(v -> {
-            startActivity(new Intent(this, CustomNailShapeActivity.class));
+                        if (tvWelcomeUser != null) tvWelcomeUser.setText("Hi, " + name + "! 👋");
+                        if (tvUserPoints != null) tvUserPoints.setText(points + " Pts");
+                    }
+                } else {
+                    if (tvWelcomeUser != null) tvWelcomeUser.setText("Hi, " + currentUsername + "! 👋");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Biarkan tampilan default jika gagal memuat
+            }
         });
 
-        // Membuka halaman GelPolishActivity saat menu Gel Nail ditekan (Memperbaiki tombol macet)
-        menuGelNail.setOnClickListener(v -> {
-            startActivity(new Intent(this, GelPolishActivity.class));
-        });
+        menuPressOnNail.setOnClickListener(v -> startActivity(new Intent(this, CustomNailShapeActivity.class)));
+        menuGelNail.setOnClickListener(v -> startActivity(new Intent(this, GelPolishActivity.class)));
+        menuManicure.setOnClickListener(v -> startActivity(new Intent(this, ManicureActivity.class)));
 
-        // Membuka halaman ManicureActivity saat menu Manicure ditekan (Memperbaiki tombol macet)
-        menuManicure.setOnClickListener(v -> {
-            startActivity(new Intent(this, ManicureActivity.class));
-        });
-
-        // PERBAIKAN NAVIGASI BAWAH: Mengaktifkan perpindahan menu bar bawah secara mulus
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
@@ -68,14 +86,13 @@ public class MainNavigationActivity extends AppCompatActivity {
                 return true;
             } else if (id == R.id.nav_explore) {
                 startActivity(new Intent(this, ExploreActivity.class));
-                overridePendingTransition(0, 0); // Menghilangkan efek kedip animasi transisi
+                overridePendingTransition(0, 0);
                 return true;
             } else if (id == R.id.nav_history) {
                 startActivity(new Intent(this, HistoryActivity.class));
                 overridePendingTransition(0, 0);
                 return true;
             } else if (id == R.id.nav_profile) {
-                // Membuka halaman ProfileActivity secara lancar tanpa macet lagi
                 startActivity(new Intent(this, ProfileActivity.class));
                 overridePendingTransition(0, 0);
                 return true;
@@ -83,7 +100,6 @@ public class MainNavigationActivity extends AppCompatActivity {
             return false;
         });
 
-        // Set default menu home aktif di awal
         bottomNav.setSelectedItemId(R.id.nav_home);
     }
 }

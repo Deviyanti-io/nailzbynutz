@@ -2,7 +2,6 @@ package com.example.nailzbynutz;
 
 import android.app.DatePickerDialog;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -12,14 +11,23 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.res.ResourcesCompat;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import org.json.JSONArray;
-import org.json.JSONObject;
+
+// Import Firebase
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 public class HistoryActivity extends AppCompatActivity {
 
@@ -28,6 +36,9 @@ public class HistoryActivity extends AppCompatActivity {
     private Typeface poppinsMedium, poppinsBold, fredoka;
     private TextView tabUpcoming, tabComplete;
     private boolean isUpcomingTab = true;
+
+    // Referensi Database Firebase
+    private DatabaseReference bookingsRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,18 +54,21 @@ public class HistoryActivity extends AppCompatActivity {
         poppinsBold = ResourcesCompat.getFont(this, R.font.poppins_bold);
         fredoka = ResourcesCompat.getFont(this, R.font.fredoka_bold);
 
+        // Inisialisasi Firebase Database
+        bookingsRef = FirebaseDatabase.getInstance("https://nailzbynutz-default-rtdb.asia-southeast1.firebasedatabase.app").getReference("bookings");
+
         findViewById(R.id.btn_back_history).setOnClickListener(v -> finish());
 
         tabUpcoming.setOnClickListener(v -> {
             isUpcomingTab = true;
             updateTabUI();
-            loadBookings();
+            loadBookingsFromFirebase();
         });
 
         tabComplete.setOnClickListener(v -> {
             isUpcomingTab = false;
             updateTabUI();
-            loadBookings();
+            loadBookingsFromFirebase();
         });
 
         bottomNav.setOnItemSelectedListener(item -> {
@@ -82,7 +96,7 @@ public class HistoryActivity extends AppCompatActivity {
         bottomNav.setSelectedItemId(R.id.nav_history);
 
         updateTabUI();
-        loadBookings();
+        loadBookingsFromFirebase();
     }
 
     private void updateTabUI() {
@@ -99,38 +113,52 @@ public class HistoryActivity extends AppCompatActivity {
         }
     }
 
-    private void loadBookings() {
-        bookingContainer.removeAllViews();
-        SharedPreferences prefs = getSharedPreferences("BookingData", MODE_PRIVATE);
-        String json = prefs.getString("bookings_list", "[]");
-        boolean hasItem = false;
+    // FUNGSI BARU: Membaca data langsung dari Firebase secara Real-Time
+    private void loadBookingsFromFirebase() {
+        // Menggunakan addValueEventListener agar UI otomatis update jika status berubah
+        bookingsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                bookingContainer.removeAllViews();
+                boolean hasItem = false;
 
-        try {
-            JSONArray bookings = new JSONArray(json);
-            for (int i = bookings.length() - 1; i >= 0; i--) {
-                JSONObject booking = bookings.getJSONObject(i);
-                String status = booking.getString("status");
-
-                boolean shouldShow = false;
-                if (isUpcomingTab && status.equals("Confirmed")) {
-                    shouldShow = true;
-                } else if (!isUpcomingTab && (status.equals("Completed") || status.equals("Canceled"))) {
-                    shouldShow = true;
+                // Masukkan ke dalam List agar bisa dibaca dari yang terbaru (reverse order)
+                List<DataSnapshot> bookingList = new ArrayList<>();
+                for (DataSnapshot data : snapshot.getChildren()) {
+                    bookingList.add(data);
                 }
 
-                if (shouldShow) {
-                    addBookingCard(booking, i, status);
-                    hasItem = true;
+                for (int i = bookingList.size() - 1; i >= 0; i--) {
+                    DataSnapshot booking = bookingList.get(i);
+                    String status = booking.child("status").getValue(String.class);
+
+                    if (status == null) continue;
+
+                    boolean shouldShow = false;
+                    if (isUpcomingTab && status.equals("Confirmed")) {
+                        shouldShow = true;
+                    } else if (!isUpcomingTab && (status.equals("Completed") || status.equals("Canceled"))) {
+                        shouldShow = true;
+                    }
+
+                    if (shouldShow) {
+                        addBookingCard(booking, status);
+                        hasItem = true;
+                    }
                 }
+
+                if (!hasItem) showEmptyMessage();
             }
-            if (!hasItem) showEmptyMessage();
-        } catch (Exception e) {
-            e.printStackTrace();
-            showEmptyMessage();
-        }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                showEmptyMessage();
+            }
+        });
     }
 
     private void showEmptyMessage() {
+        bookingContainer.removeAllViews();
         TextView empty = new TextView(this);
         empty.setText(isUpcomingTab ? "Belum ada booking mendatang" : "Belum ada riwayat booking");
         empty.setGravity(Gravity.CENTER);
@@ -140,15 +168,41 @@ public class HistoryActivity extends AppCompatActivity {
         bookingContainer.addView(empty);
     }
 
-    private void addBookingCard(JSONObject booking, int index, String status) throws Exception {
-        String date = booking.getString("date");
-        String month = booking.getString("month");
-        String title = booking.optString("title", "Pesanan: Layanan");
-        String subtitle = booking.getString("subtitle");
-        String time = booking.getString("time");
-        String colorHex = booking.optString("colorHex", "#D6001C");
-        String paymentStatus = booking.optString("paymentStatus", "Menunggu Pembayaran");
+    private void addBookingCard(DataSnapshot booking, String status) {
+        String bookingId = booking.getKey(); // ID unik dari Firebase
 
+        // Parsing Tanggal dengan aman
+        String dateStr = booking.child("date").getValue(String.class);
+        String day = "0";
+        String month = "-";
+        if (dateStr != null && dateStr.contains("/")) {
+            String[] parts = dateStr.split("/");
+            day = parts[0];
+            try {
+                int m = Integer.parseInt(parts[1]);
+                String[] months = {"JAN", "FEB", "MAR", "APR", "MEI", "JUN", "JUL", "AGU", "SEP", "OKT", "NOV", "DES"};
+                month = months[m - 1];
+            } catch (Exception ignored) {}
+        } else if (dateStr != null) {
+            day = dateStr;
+        }
+
+        String title = "Custom Nail";
+        String shape = booking.child("shape").getValue(String.class);
+        String length = booking.child("length").getValue(String.class);
+        String colorType = booking.child("colorType").getValue(String.class);
+        String subtitle = (shape != null ? shape : "") + " • " + (length != null ? length : "") + " • " + (colorType != null ? colorType : "");
+
+        String time = booking.child("time").getValue(String.class);
+        if (time == null) time = "Menunggu Waktu";
+
+        String colorHex = booking.child("colorHex").getValue(String.class);
+        if (colorHex == null) colorHex = "#D6001C";
+
+        String paymentStatus = booking.child("paymentStatus").getValue(String.class);
+        if (paymentStatus == null) paymentStatus = "Menunggu Konfirmasi";
+
+        // === PEMBUATAN KARTU UI (UI GENERATION) ===
         CardView card = new CardView(this);
         LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -173,7 +227,7 @@ public class HistoryActivity extends AppCompatActivity {
         dateBox.setBackground(getDateBoxBackground());
 
         TextView tvDate = new TextView(this);
-        tvDate.setText(date); tvDate.setTextSize(22); tvDate.setTextColor(getColor(R.color.lavender_dark)); tvDate.setTypeface(fredoka);
+        tvDate.setText(day); tvDate.setTextSize(22); tvDate.setTextColor(getColor(R.color.lavender_dark)); tvDate.setTypeface(fredoka);
         TextView tvMonth = new TextView(this);
         tvMonth.setText(month); tvMonth.setTextSize(11); tvMonth.setTextColor(getColor(R.color.lavender_dark)); tvMonth.setTypeface(poppinsMedium);
         dateBox.addView(tvDate); dateBox.addView(tvMonth);
@@ -195,7 +249,11 @@ public class HistoryActivity extends AppCompatActivity {
         colorIndicator.setLayoutParams(colorParams);
         GradientDrawable colorCircle = new GradientDrawable();
         colorCircle.setShape(GradientDrawable.OVAL);
-        colorCircle.setColor(Color.parseColor(colorHex));
+        try {
+            colorCircle.setColor(Color.parseColor(colorHex));
+        } catch (Exception e) {
+            colorCircle.setColor(Color.parseColor("#D6001C"));
+        }
         colorIndicator.setBackground(colorCircle);
 
         TextView tvTime = new TextView(this);
@@ -220,9 +278,9 @@ public class HistoryActivity extends AppCompatActivity {
         if (paymentStatus.equals("Lunas")) {
             tvPayStatus.setTextColor(getColor(R.color.success));
         } else if (paymentStatus.equals("Menunggu Konfirmasi")) {
-            tvPayStatus.setTextColor(Color.parseColor("#FF9800")); // Warna Orange
+            tvPayStatus.setTextColor(Color.parseColor("#FF9800"));
         } else {
-            tvPayStatus.setTextColor(Color.parseColor("#D6001C")); // Merah
+            tvPayStatus.setTextColor(Color.parseColor("#D6001C"));
             tvPayStatus.setOnClickListener(v -> {
                 startActivity(new Intent(HistoryActivity.this, PaymentInfoActivity.class));
             });
@@ -248,7 +306,7 @@ public class HistoryActivity extends AppCompatActivity {
             editParams.setMargins(0, 0, 8, 0); btnEdit.setLayoutParams(editParams);
             GradientDrawable bgEdit = new GradientDrawable(); bgEdit.setColor(Color.parseColor("#EEF0FA")); bgEdit.setCornerRadius(20);
             btnEdit.setBackground(bgEdit);
-            btnEdit.setOnClickListener(v -> openDatePicker(index));
+            btnEdit.setOnClickListener(v -> openDatePicker(bookingId)); // Ubah Parameter
 
             TextView btnCancel = new TextView(this);
             btnCancel.setText("Cancel"); btnCancel.setGravity(Gravity.CENTER); btnCancel.setTextColor(Color.parseColor("#D6001C"));
@@ -259,7 +317,7 @@ public class HistoryActivity extends AppCompatActivity {
             btnCancel.setBackground(bgCancel);
             btnCancel.setOnClickListener(v -> {
                 new AlertDialog.Builder(this).setTitle("Batalkan Booking").setMessage("Yakin ingin membatalkan booking ini?")
-                        .setPositiveButton("Ya", (dialog, which) -> cancelBooking(index)).setNegativeButton("Tidak", null).show();
+                        .setPositiveButton("Ya", (dialog, which) -> cancelBooking(bookingId)).setNegativeButton("Tidak", null).show(); // Ubah Parameter
             });
 
             actionRow.addView(btnEdit); actionRow.addView(btnCancel);
@@ -274,7 +332,7 @@ public class HistoryActivity extends AppCompatActivity {
             btnDelete.setBackground(bgDelete);
             btnDelete.setOnClickListener(v -> {
                 new AlertDialog.Builder(this).setTitle("Hapus Riwayat").setMessage("Yakin hapus riwayat ini secara permanen?")
-                        .setPositiveButton("Ya", (dialog, which) -> removeBooking(index)).setNegativeButton("Tidak", null).show();
+                        .setPositiveButton("Ya", (dialog, which) -> removeBooking(bookingId)).setNegativeButton("Tidak", null).show(); // Ubah Parameter
             });
             actionRow.addView(btnDelete);
         }
@@ -282,45 +340,27 @@ public class HistoryActivity extends AppCompatActivity {
         mainContent.addView(actionRow); card.addView(mainContent); bookingContainer.addView(card);
     }
 
-    private void openDatePicker(int index) {
+    private void openDatePicker(String bookingId) {
         Calendar cal = Calendar.getInstance();
         DatePickerDialog dialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
-            String[] months = {"JAN", "FEB", "MAR", "APR", "MEI", "JUN", "JUL", "AGU", "SEP", "OKT", "NOV", "DES"};
-            try {
-                SharedPreferences prefs = getSharedPreferences("BookingData", MODE_PRIVATE);
-                JSONArray array = new JSONArray(prefs.getString("bookings_list", "[]"));
-                JSONObject obj = array.getJSONObject(index);
-                obj.put("date", String.valueOf(dayOfMonth));
-                obj.put("month", months[month]);
-                prefs.edit().putString("bookings_list", array.toString()).apply();
-                Toast.makeText(this, "Tanggal booking diperbarui!", Toast.LENGTH_SHORT).show();
-                loadBookings();
-            } catch (Exception e) { e.printStackTrace(); }
+            String newDate = dayOfMonth + "/" + (month + 1) + "/" + year;
+            bookingsRef.child(bookingId).child("date").setValue(newDate).addOnSuccessListener(aVoid -> {
+                Toast.makeText(this, "Tanggal booking diperbarui di Server!", Toast.LENGTH_SHORT).show();
+            });
         }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
         dialog.show();
     }
 
-    private void cancelBooking(int index) {
-        try {
-            SharedPreferences prefs = getSharedPreferences("BookingData", MODE_PRIVATE);
-            JSONArray array = new JSONArray(prefs.getString("bookings_list", "[]"));
-            JSONObject obj = array.getJSONObject(index);
-            obj.put("status", "Canceled");
-            prefs.edit().putString("bookings_list", array.toString()).apply();
+    private void cancelBooking(String bookingId) {
+        bookingsRef.child(bookingId).child("status").setValue("Canceled").addOnSuccessListener(aVoid -> {
             Toast.makeText(this, "Booking berhasil dibatalkan", Toast.LENGTH_SHORT).show();
-            loadBookings();
-        } catch (Exception e) { e.printStackTrace(); }
+        });
     }
 
-    private void removeBooking(int index) {
-        try {
-            SharedPreferences prefs = getSharedPreferences("BookingData", MODE_PRIVATE);
-            JSONArray array = new JSONArray(prefs.getString("bookings_list", "[]"));
-            array.remove(index);
-            prefs.edit().putString("bookings_list", array.toString()).apply();
-            Toast.makeText(this, "Riwayat dihapus", Toast.LENGTH_SHORT).show();
-            loadBookings();
-        } catch (Exception e) { e.printStackTrace(); }
+    private void removeBooking(String bookingId) {
+        bookingsRef.child(bookingId).removeValue().addOnSuccessListener(aVoid -> {
+            Toast.makeText(this, "Riwayat dihapus secara permanen", Toast.LENGTH_SHORT).show();
+        });
     }
 
     private GradientDrawable getDateBoxBackground() {

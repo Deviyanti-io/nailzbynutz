@@ -60,6 +60,18 @@
             android:fontFamily="@font/poppins_regular" />
 
         <EditText
+            android:id="@+id/et_phone_signup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nomor HP / WhatsApp"
+            android:inputType="phone"
+            android:padding="16dp"
+            android:textColor="#000000"
+            android:textColorHint="#888888"
+            android:background="@android:color/white"
+            android:layout_marginBottom="16dp" />
+
+        <EditText
             android:id="@+id/et_reg_password"
             android:layout_width="match_parent"
             android:layout_height="50dp"

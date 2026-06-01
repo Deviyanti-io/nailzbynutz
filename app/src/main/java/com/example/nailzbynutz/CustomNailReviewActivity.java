@@ -93,13 +93,16 @@ public class CustomNailReviewActivity extends AppCompatActivity {
             colorPreview.setBackground(gd);
         }
 
-        // Tampilkan Gambar
+        // Tampilkan Gambar (Diperbarui dengan Glide untuk baca URL dari Firebase)
         if (uploadedImage != null && !uploadedImage.isEmpty()) {
             tvImageTitle.setVisibility(View.VISIBLE);
             ivReviewImage.setVisibility(View.VISIBLE);
-            ivReviewImage.setImageURI(Uri.parse(uploadedImage));
-        }
 
+            com.bumptech.glide.Glide.with(this)
+                    .load(uploadedImage)
+                    .placeholder(android.R.drawable.ic_menu_gallery) // Gambar loading sementara
+                    .into(ivReviewImage);
+        }
         Locale localeID = new Locale("in", "ID");
         tvGrandTotal.setText(NumberFormat.getCurrencyInstance(localeID).format(grandTotal));
 

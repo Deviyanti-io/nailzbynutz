@@ -19,4 +19,9 @@
     <item name="tv_upload_status" type="id" />
     <item name="tv_catalog_price" type="id" />
     <item name="btn_like_item" type="id" />
+    <item name="tv_active_orders" type="id" />
+    <item name="tv_total_revenue" type="id" />
+    <item name="tv_user_points" type="id" />
+    <item name="et_email" type="id" />
+    <item name="btn_signup" type="id" />
 </resources>

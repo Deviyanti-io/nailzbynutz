@@ -20,15 +20,6 @@
         android:layout_marginBottom="50dp"
         android:paddingHorizontal="30dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:fontFamily="@font/fredoka_bold"
-            android:text="Welcome Back, Cutie!"
-            android:textColor="@color/text_primary"
-            android:textSize="22sp"
-            android:textStyle="bold" />
 
         <EditText
             android:id="@+id/et_username"
